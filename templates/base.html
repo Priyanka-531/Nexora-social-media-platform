@@ -1,0 +1,1451 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}Nexora{% endblock %}
+    </title>
+
+
+    <!-- =====================================================
+         GOOGLE FONTS & MATERIAL SYMBOLS (Vivid Pulse)
+    ====================================================== -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+
+    <!-- =====================================================
+         BOOTSTRAP & FONT AWESOME
+    ====================================================== -->
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+
+    <!-- =====================================================
+         TAILWIND CSS & VIVID PULSE CONFIG
+    ====================================================== -->
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#6b38d4",
+              "primary-container": "#8455ef",
+              "secondary": "#b4136d",
+              "secondary-container": "#fd56a7",
+              "tertiary": "#a12e70",
+              "background": "#faf8ff",
+              "surface": "#ffffff",
+              "surface-container": "#eaedff",
+              "surface-container-low": "#f2f3ff",
+              "on-primary": "#ffffff",
+              "on-surface": "#131b2e",
+              "on-surface-variant": "#494454",
+              "outline-variant": "#cbc3d7"
+            },
+            fontFamily: {
+              sans: ["Plus Jakarta Sans", "sans-serif"]
+            }
+          }
+        }
+      }
+    </script>
+
+
+    <!-- =====================================================
+         NEXORA CSS
+    ====================================================== -->
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+</head>
+
+
+<body class="bg-background text-on-surface font-sans min-h-screen flex flex-col antialiased">
+
+
+<!-- =========================================================
+     TOP APP HEADER (Vivid Pulse)
+========================================================= -->
+
+<header class="sticky top-0 z-40 bg-surface/90 backdrop-blur-md border-b border-outline-variant/30 px-4 md:px-8 h-16 flex items-center justify-between">
+
+    <!-- BRAND / LOGO -->
+
+    <div class="flex items-center gap-3">
+
+        <a href="{% url 'home' %}" class="flex items-center gap-2">
+
+            <div class="w-9 h-9 rounded-full vivid-gradient flex items-center justify-center text-white font-bold text-xl shadow-[0px_4px_12px_rgba(139,92,246,0.2)]">
+
+                N
+
+            </div>
+
+            <span class="font-extrabold text-2xl tracking-tight vivid-gradient-text">
+
+                Nexora
+
+            </span>
+
+        </a>
+
+    </div>
+
+
+    {% if user.is_authenticated %}
+
+    <!-- SEARCH BAR -->
+
+    <form action="{% url 'search_users' %}" method="GET" class="hidden md:flex items-center gap-2 bg-surface-container-low border border-outline-variant/40 rounded-full px-4 py-2 w-72 focus-within:bg-white focus-within:border-primary transition-all relative">
+
+        <span class="material-symbols-outlined text-on-surface-variant text-xl">search</span>
+
+        <input type="text"
+               name="q"
+               placeholder="Search Nexora..."
+               id="navSearch"
+               class="bg-transparent border-none outline-none w-full text-sm text-on-surface placeholder-on-surface-variant/60"
+               autocomplete="off">
+
+        <!-- LIVE SEARCH DROPDOWN -->
+        <div id="searchResultsDropdown" class="absolute top-full left-0 right-0 mt-2 w-96 -ml-12 bg-surface rounded-3xl border border-outline-variant/30 ambient-shadow-high hidden z-50 max-h-96 overflow-y-auto p-2 space-y-2"></div>
+
+    </form>
+
+
+    <!-- NAVIGATION ACTIONS -->
+
+    <div class="flex items-center gap-2 md:gap-4">
+
+        <!-- NOTIFICATIONS BELL LINK & DROPDOWN TOGGLE -->
+
+        <div class="relative" id="notif-dropdown-wrapper">
+
+            <button type="button"
+
+                    id="notifDropdownToggle"
+
+                    class="w-10 h-10 rounded-full bg-surface-container-low hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors relative"
+
+                    title="Notifications">
+
+                <span class="material-symbols-outlined text-xl">notifications</span>
+
+                <span class="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full bg-secondary text-white text-[10px] font-extrabold flex items-center justify-center border-2 border-white {% if unread_notifications_count == 0 %}hidden{% endif %}"
+
+                      id="nav-notif-count-badge">
+
+                    {{ unread_notifications_count }}
+
+                </span>
+
+            </button>
+
+
+            <!-- NOTIFICATIONS DROPDOWN MENU -->
+
+            <div id="notifDropdownMenu"
+
+                 class="absolute top-full right-0 mt-3 w-80 sm:w-96 bg-surface rounded-3xl border border-outline-variant/30 ambient-shadow-high hidden z-50 overflow-hidden flex flex-col max-h-[480px]">
+
+                <div class="p-4 border-b border-outline-variant/20 flex items-center justify-between bg-surface-container-low/50">
+
+                    <div class="flex items-center gap-2">
+
+                        <span class="material-symbols-outlined text-lg text-primary">notifications</span>
+
+                        <span class="font-bold text-sm text-on-surface">Notifications</span>
+
+                    </div>
+
+                    <button type="button"
+
+                            id="dropdownMarkAllReadBtn"
+
+                            class="text-[11px] font-bold text-primary hover:underline flex items-center gap-1">
+
+                        <span class="material-symbols-outlined text-xs">done_all</span>
+
+                        <span>Mark read</span>
+
+                    </button>
+
+                </div>
+
+
+                <div class="overflow-y-auto divide-y divide-outline-variant/20 flex-1 p-1" id="dropdownNotifList">
+
+                    {% for notif in navbar_notifications %}
+
+                    <a href="{% url 'open_notification' notif.id %}"
+
+                       class="flex items-center gap-3 p-3 hover:bg-surface-container-low rounded-2xl transition-colors text-left {% if not notif.is_read %}bg-primary/5{% endif %}">
+
+                        <div class="w-9 h-9 rounded-full p-[2px] vivid-gradient shrink-0">
+
+                            {% if notif.sender.profile.profile_picture %}
+
+                                <img src="{{ notif.sender.profile.profile_picture.url }}" alt="{{ notif.sender.username }}" class="w-full h-full object-cover rounded-full border border-white">
+
+                            {% else %}
+
+                                <img src="https://ui-avatars.com/api/?name={{ notif.sender.username }}&background=6b38d4&color=fff" alt="{{ notif.sender.username }}" class="w-full h-full object-cover rounded-full border border-white">
+
+                            {% endif %}
+
+                        </div>
+
+                        <div class="min-w-0 flex-1">
+
+                            <p class="text-xs text-on-surface truncate">
+
+                                <span class="font-bold">@{{ notif.sender.username }}</span>
+
+                                {% if notif.notification_type == 'like' %}liked your post.
+
+                                {% elif notif.notification_type == 'comment' %}commented on post.
+
+                                {% elif notif.notification_type == 'mention' %}mentioned you.
+
+                                {% elif notif.notification_type == 'follow_request' %}requested follow.
+
+                                {% elif notif.notification_type == 'follow_accept' %}accepted request.
+
+                                {% else %}followed you.{% endif %}
+
+                            </p>
+
+                            <p class="text-[10px] text-on-surface-variant/60 mt-0.5">{{ notif.created_at|timesince }} ago</p>
+
+                        </div>
+
+                        {% if not notif.is_read %}
+
+                            <span class="w-2 h-2 rounded-full bg-secondary shrink-0"></span>
+
+                        {% endif %}
+
+                    </a>
+
+                    {% empty %}
+
+                    <div class="p-6 text-center text-xs text-on-surface-variant italic">No notifications yet</div>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <a href="{% url 'notifications_list' %}" class="p-3 text-center text-xs font-bold text-primary hover:bg-surface-container-low border-t border-outline-variant/20 block">
+
+                    View All Notifications
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- FOLLOW REQUESTS -->
+
+        <a href="{% url 'follow_requests' %}"
+           class="relative w-10 h-10 rounded-full bg-surface-container-low hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors"
+           title="Follow Requests">
+
+            <span class="material-symbols-outlined text-xl">group_add</span>
+
+            <span class="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full bg-secondary text-white text-[10px] font-extrabold flex items-center justify-center border-2 border-white {% if pending_follow_requests_count == 0 %}hidden{% endif %}"
+                  id="nav-request-count-badge">
+
+                {{ pending_follow_requests_count }}
+
+            </span>
+
+        </a>
+
+
+        <!-- CREATE -->
+
+        <a href="{% url 'create_post' %}"
+           class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full vivid-gradient text-white text-sm font-semibold shadow-[0px_4px_12px_rgba(139,92,246,0.2)] hover:opacity-95 transition-transform active:scale-95">
+
+            <span class="material-symbols-outlined text-lg">add</span>
+
+            <span>Create</span>
+
+        </a>
+
+
+        <!-- USER AVATAR -->
+
+        <a href="{% url 'profile' %}" class="relative group">
+
+            <div class="w-10 h-10 rounded-full p-[2px] vivid-gradient transition-transform group-hover:scale-105">
+
+                {% if user.profile.profile_picture %}
+
+                    <img src="{{ user.profile.profile_picture.url }}"
+                         alt="{{ user.username }}"
+                         class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                {% else %}
+
+                    <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=6b38d4&color=fff&bold=true"
+                         alt="{{ user.username }}"
+                         class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                {% endif %}
+
+            </div>
+
+        </a>
+
+
+        <!-- LOGOUT -->
+
+        <a href="{% url 'logout' %}"
+           class="w-10 h-10 rounded-full bg-surface-container-low hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors"
+           title="Logout">
+
+            <span class="material-symbols-outlined text-xl">logout</span>
+
+        </a>
+
+    </div>
+
+    {% else %}
+
+    <!-- GUEST ACTIONS -->
+
+    <div class="flex items-center gap-3">
+
+        <a href="{% url 'login' %}" class="px-5 py-2 rounded-full border border-primary text-primary font-semibold text-sm hover:bg-primary/5 transition-colors">
+
+            Log in
+
+        </a>
+
+        <a href="{% url 'register' %}" class="px-5 py-2 rounded-full vivid-gradient text-white font-semibold text-sm shadow-[0px_4px_12px_rgba(139,92,246,0.2)] hover:opacity-95 transition-transform active:scale-95">
+
+            Sign up
+
+        </a>
+
+    </div>
+
+    {% endif %}
+
+</header>
+
+
+
+<!-- =========================================================
+     MAIN CONTENT CANVAS
+========================================================= -->
+
+<main class="flex-grow max-w-6xl w-full mx-auto px-4 md:px-6 py-6 pb-24 md:pb-12">
+
+    <!-- DJANGO FLASH MESSAGES -->
+
+    {% if messages %}
+
+        <div class="messages-container mb-6 max-w-2xl mx-auto space-y-3">
+
+            {% for message in messages %}
+
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show shadow-sm rounded-2xl flex items-center gap-2 border-0 py-3 px-4" role="alert">
+
+                    <span class="material-symbols-outlined text-xl">
+
+                        {% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' %}warning{% else %}info{% endif %}
+
+                    </span>
+
+                    <span class="font-medium text-sm">{{ message }}</span>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+
+    {% block content %}
+
+    {% endblock %}
+
+</main>
+
+
+
+<!-- =========================================================
+     FLOATING ACTION BUTTON (FAB - Mobile/Tablet)
+========================================================= -->
+
+{% if user.is_authenticated %}
+
+<a href="{% url 'create_post' %}"
+   class="fixed bottom-20 right-6 md:bottom-8 md:right-8 w-14 h-14 vivid-gradient rounded-full flex items-center justify-center text-white shadow-[0px_12px_24px_rgba(139,92,246,0.25)] hover:shadow-[0px_16px_32px_rgba(139,92,246,0.35)] active:scale-90 transition-all z-40"
+   title="Create New Post">
+
+    <span class="material-symbols-outlined text-3xl">add</span>
+
+</a>
+
+{% endif %}
+
+
+
+<!-- =========================================================
+     BOTTOM NAVIGATION BAR (Mobile Viewport)
+========================================================= -->
+
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 bg-surface/95 backdrop-blur-md shadow-[0px_-4px_12px_rgba(15,23,42,0.05)] border-t border-outline-variant/30">
+
+    <a href="{% url 'home' %}" class="flex flex-col items-center justify-center text-primary py-1">
+
+        <span class="material-symbols-outlined text-2xl">home</span>
+
+        <span class="text-[11px] font-semibold mt-0.5">Home</span>
+
+    </a>
+
+    {% if user.is_authenticated %}
+
+    <a href="{% url 'notifications_list' %}" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary py-1 relative">
+
+        <span class="material-symbols-outlined text-2xl">notifications</span>
+
+        <span class="absolute top-1 right-2.5 w-2 h-2 rounded-full bg-secondary {% if unread_notifications_count == 0 %}hidden{% endif %}" id="mobile-notif-dot"></span>
+
+        <span class="text-[11px] font-semibold mt-0.5">Alerts</span>
+
+    </a>
+
+    <a href="{% url 'follow_requests' %}" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary py-1 relative">
+
+        <span class="material-symbols-outlined text-2xl">group_add</span>
+
+        <span class="absolute top-1 right-2.5 w-2 h-2 rounded-full bg-secondary {% if pending_follow_requests_count == 0 %}hidden{% endif %}" id="mobile-request-dot"></span>
+
+        <span class="text-[11px] font-semibold mt-0.5">Requests</span>
+
+    </a>
+
+    <a href="{% url 'create_post' %}" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary py-1">
+
+        <span class="material-symbols-outlined text-2xl">add_circle</span>
+
+        <span class="text-[11px] font-semibold mt-0.5">Create</span>
+
+    </a>
+
+    <a href="{% url 'profile' %}" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary py-1">
+
+        <span class="material-symbols-outlined text-2xl">person</span>
+
+        <span class="text-[11px] font-semibold mt-0.5">Profile</span>
+
+    </a>
+
+    {% else %}
+
+    <a href="{% url 'login' %}" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary py-1">
+
+        <span class="material-symbols-outlined text-2xl">login</span>
+
+        <span class="text-[11px] font-semibold mt-0.5">Login</span>
+
+    </a>
+
+    {% endif %}
+
+</nav>
+
+
+
+<!-- =========================================================
+     JAVASCRIPT LIBRARIES & AJAX LOGIC
+========================================================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    function getCookie(name) {
+
+        let cookieValue = null;
+
+        if (document.cookie && document.cookie !== "") {
+
+            const cookies = document.cookie.split(";");
+
+            for (let cookie of cookies) {
+
+                cookie = cookie.trim();
+
+                if (cookie.startsWith(name + "=")) {
+
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+
+                    break;
+
+                }
+
+            }
+
+        }
+
+        return cookieValue;
+
+    }
+
+    const csrftoken = getCookie("csrftoken");
+
+
+    /* ================= TOAST NOTIFICATION UTILITY ================= */
+    function showToast(message, type = "info") {
+        let container = document.querySelector(".nexora-toast-container");
+        if (!container) {
+            container = document.createElement("div");
+            container.className = "nexora-toast-container";
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement("div");
+        toast.className = "nexora-toast";
+        const iconName = type === "error" ? "error" : "info";
+        toast.innerHTML = `<span class="material-symbols-outlined text-sm">${iconName}</span><span>${message}</span>`;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            toast.style.transform = "translateY(10px)";
+            toast.style.transition = "all 0.3s ease";
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    /* ================= LIKE / UNLIKE AJAX & DOUBLE-TAP ================= */
+
+    function formatLikeCount(count) {
+        if (count === 1) {
+            return "1 Like";
+        }
+        return count + " Likes";
+    }
+
+    function toggleLike(postId, button, icon, countElement, forceLike = false) {
+        if (!postId) return;
+
+        // Extract current state for optimistic UI update & rollback
+        const isCurrentlyLiked = icon.classList.contains("fill") || icon.classList.contains("text-secondary");
+        
+        if (forceLike && isCurrentlyLiked) {
+            return;
+        }
+
+        // Parse current integer count
+        let currentCount = 0;
+        if (countElement) {
+            const countMatch = countElement.textContent.match(/\d+/);
+            if (countMatch) {
+                currentCount = parseInt(countMatch[0], 10);
+            }
+        }
+
+        // Compute optimistic state
+        const targetLiked = forceLike ? true : !isCurrentlyLiked;
+        let optimisticCount = targetLiked ? currentCount + 1 : Math.max(0, currentCount - 1);
+        if (forceLike && isCurrentlyLiked) {
+            optimisticCount = currentCount;
+        }
+
+        // Apply Optimistic Update
+        if (targetLiked) {
+            icon.classList.add("text-red-500", "fill");
+            icon.classList.remove("text-on-surface-variant");
+        } else {
+            icon.classList.remove("text-red-500", "fill");
+            icon.classList.add("text-on-surface-variant");
+        }
+
+        if (countElement) {
+            countElement.textContent = formatLikeCount(optimisticCount);
+        }
+
+        if (button) button.disabled = true;
+
+        fetch(`/posts/like/${postId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrftoken,
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ force_like: forceLike }),
+            credentials: "same-origin"
+        })
+        .then(async response => {
+            if (response.status === 401) {
+                throw new Error("UNAUTHENTICATED");
+            }
+            if (!response.ok) {
+                throw new Error("FAILED");
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.success) throw new Error("FAILED");
+
+            // Sync exact server data
+            if (data.liked) {
+                icon.classList.add("text-red-500", "fill");
+                icon.classList.remove("text-on-surface-variant");
+            } else {
+                icon.classList.remove("text-red-500", "fill");
+                icon.classList.add("text-on-surface-variant");
+            }
+
+            if (countElement) {
+                countElement.textContent = formatLikeCount(data.likes_count);
+            }
+        })
+        .catch(err => {
+            // ROLLBACK OPTIMISTIC UPDATE ON ERROR
+            if (isCurrentlyLiked) {
+                icon.classList.add("text-red-500", "fill");
+                icon.classList.remove("text-on-surface-variant");
+            } else {
+                icon.classList.remove("text-red-500", "fill");
+                icon.classList.add("text-on-surface-variant");
+            }
+
+            if (countElement) {
+                countElement.textContent = formatLikeCount(currentCount);
+            }
+
+            if (err.message === "UNAUTHENTICATED") {
+                showToast("Please log in to like posts.", "error");
+            } else {
+                showToast("Failed to update like. Please try again.", "error");
+            }
+        })
+        .finally(() => {
+            if (button) button.disabled = false;
+        });
+    }
+
+    // Attach click handlers to heart buttons
+    document.querySelectorAll(".like-button").forEach(button => {
+        button.addEventListener("click", function (e) {
+            e.preventDefault();
+            const postId = this.dataset.postId;
+            const icon = this.querySelector(".like-icon");
+            const countElement = document.getElementById("like-count-" + postId);
+            toggleLike(postId, this, icon, countElement, false);
+        });
+    });
+
+    // Double-click to like on post images
+    document.querySelectorAll(".post-image").forEach(img => {
+        img.addEventListener("dblclick", function (e) {
+            e.preventDefault();
+            const postId = this.dataset.postId;
+            const card = document.getElementById("post-" + postId) || this.closest("article") || this.parentElement;
+            
+            // Trigger floating heart animation
+            const parent = this.parentElement;
+            if (parent) {
+                const heart = document.createElement("span");
+                heart.className = "material-symbols-outlined fill double-tap-heart text-6xl";
+                heart.textContent = "favorite";
+                parent.appendChild(heart);
+                setTimeout(() => heart.remove(), 850);
+            }
+
+            if (card) {
+                const button = card.querySelector(".like-button");
+                const icon = card.querySelector(".like-icon");
+                const countElement = document.getElementById("like-count-" + postId);
+                if (icon) {
+                    toggleLike(postId, button, icon, countElement, true);
+                }
+            }
+        });
+    });
+
+
+    /* ================= SAVE / BOOKMARK AJAX ================= */
+
+    function toggleSave(postId, button, icon) {
+        if (!postId) return;
+
+        const isCurrentlySaved = icon.classList.contains("fill") || icon.classList.contains("text-primary");
+        const targetSaved = !isCurrentlySaved;
+
+        // Optimistic UI Update
+        if (targetSaved) {
+            icon.classList.add("text-primary", "fill");
+        } else {
+            icon.classList.remove("text-primary", "fill");
+        }
+
+        if (button) button.disabled = true;
+
+        fetch(`/posts/save/${postId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrftoken,
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Type": "application/json"
+            },
+            credentials: "same-origin"
+        })
+        .then(async response => {
+            if (response.status === 401) {
+                throw new Error("UNAUTHENTICATED");
+            }
+            if (!response.ok) {
+                throw new Error("FAILED");
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.success) throw new Error("FAILED");
+
+            if (data.saved) {
+                icon.classList.add("text-primary", "fill");
+                showToast("Post saved to your bookmarks!", "info");
+            } else {
+                icon.classList.remove("text-primary", "fill");
+                showToast("Post removed from saved", "info");
+            }
+        })
+        .catch(err => {
+            // Rollback on error
+            if (isCurrentlySaved) {
+                icon.classList.add("text-primary", "fill");
+            } else {
+                icon.classList.remove("text-primary", "fill");
+            }
+
+            if (err.message === "UNAUTHENTICATED") {
+                showToast("Please log in to save posts.", "error");
+            } else {
+                showToast("Failed to save post. Please try again.", "error");
+            }
+        })
+        .finally(() => {
+            if (button) button.disabled = false;
+        });
+    }
+
+    document.querySelectorAll(".save-button").forEach(button => {
+        button.addEventListener("click", function (e) {
+            e.preventDefault();
+            const postId = this.dataset.postId;
+            const icon = this.querySelector(".save-icon") || this.querySelector(".material-symbols-outlined");
+            toggleSave(postId, this, icon);
+        });
+    });
+
+
+    /* ================= AJAX COMMENT ================= */
+
+    document.querySelectorAll(".ajax-comment-form").forEach(form => {
+
+        form.addEventListener("submit", function (e) {
+
+            e.preventDefault();
+
+            const postId = this.dataset.postId;
+
+            const input = this.querySelector("input[name='text']");
+
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            const button = this.querySelector("button");
+
+            button.disabled = true;
+
+            const formData = new FormData();
+
+            formData.append("text", text);
+
+            fetch(`/interactions/comment/${postId}/`, {
+
+                method: "POST",
+
+                headers: {
+
+                    "X-CSRFToken": csrftoken,
+
+                    "X-Requested-With": "XMLHttpRequest"
+
+                },
+
+                body: formData,
+
+                credentials: "same-origin"
+
+            })
+
+            .then(response => {
+
+                if (!response.ok) throw new Error("Comment failed");
+
+                window.location.reload();
+
+            })
+
+            .catch(err => {
+
+                console.error("Comment error:", err);
+
+                button.disabled = false;
+
+            });
+
+        });
+
+    });
+
+
+    /* ================= DELETE COMMENT AJAX ================= */
+
+    document.querySelectorAll(".delete-comment-btn").forEach(button => {
+
+        button.addEventListener("click", function () {
+
+            const commentId = this.dataset.commentId;
+
+            if (!confirm("Delete this comment?")) return;
+
+            fetch(`/interactions/delete-comment/${commentId}/`, {
+
+                method: "POST",
+
+                headers: {
+
+                    "X-CSRFToken": csrftoken,
+
+                    "X-Requested-With": "XMLHttpRequest"
+
+                },
+
+                credentials: "same-origin"
+
+            })
+
+            .then(response => {
+
+                if (!response.ok) throw new Error("Delete failed");
+
+                return response.json();
+
+            })
+
+            .then(data => {
+
+                const comment = document.getElementById("comment-" + commentId);
+
+                if (comment) {
+
+                    const postCard = comment.closest(".post-card");
+
+                    comment.remove();
+
+                    if (postCard && data && data.comment_count !== undefined) {
+
+                        const countSpan = postCard.querySelector("[id^='comment-count-']");
+
+                        if (countSpan) countSpan.textContent = data.comment_count;
+
+                    }
+
+                }
+
+            })
+
+            .catch(err => console.error("Delete comment error:", err));
+
+        });
+
+    });
+
+
+    /* ================= FOLLOW / REQUEST AJAX ================= */
+    function updateFollowButtonUI(btn, status, isFollowing, isRequested) {
+        let statusVal = status;
+        if (!statusVal) {
+            if (isFollowing) statusVal = "following";
+            else if (isRequested) statusVal = "requested";
+            else statusVal = "none";
+        }
+
+        btn.dataset.status = statusVal;
+        btn.dataset.isFollowing = (statusVal === "following") ? "true" : "false";
+        btn.dataset.isRequested = (statusVal === "requested") ? "true" : "false";
+
+        btn.classList.remove(
+            "is-following", "is-requested", "bg-surface-container-low",
+            "text-on-surface", "text-primary", "border", "border-outline-variant",
+            "border-primary/30", "vivid-gradient", "text-white", "shadow-sm"
+        );
+
+        if (statusVal === "following") {
+            btn.textContent = "Following";
+            btn.classList.add("is-following", "bg-surface-container-low", "text-on-surface", "border", "border-outline-variant");
+        } else if (statusVal === "requested") {
+            btn.textContent = "Requested";
+            btn.classList.add("is-requested", "bg-surface-container-low", "text-primary", "border", "border-primary/30");
+        } else {
+            btn.textContent = "Follow";
+            btn.classList.add("vivid-gradient", "text-white", "shadow-sm");
+        }
+    }
+
+    window.toggleFollow = function(username, button) {
+        if (!username || !button) return;
+
+        button.disabled = true;
+
+        fetch(`/follow/${username}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrftoken,
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Type": "application/json"
+            },
+            credentials: "same-origin"
+        })
+        .then(async response => {
+            if (response.status === 401) {
+                throw new Error("UNAUTHENTICATED");
+            }
+            if (!response.ok) {
+                throw new Error("FAILED");
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.success) throw new Error("FAILED");
+
+            // Update all buttons targeting this username across the DOM cleanly
+            document.querySelectorAll(`.follow-btn[data-username="${username}"]`).forEach(btn => {
+                updateFollowButtonUI(btn, data.status, data.is_following, data.is_requested);
+            });
+
+            // Update profile counters if on profile page
+            const followersCounter = document.getElementById("profile-followers-count");
+            const followingCounter = document.getElementById("profile-following-count");
+            
+            if (followersCounter && data.target_followers_count !== undefined) {
+                followersCounter.textContent = data.target_followers_count;
+            }
+            if (followingCounter && data.follower_following_count !== undefined) {
+                followingCounter.textContent = data.follower_following_count;
+            }
+
+            showToast(data.message, "info");
+        })
+        .catch(err => {
+            if (err.message === "UNAUTHENTICATED") {
+                showToast("Please log in to follow users.", "error");
+            } else {
+                showToast("Failed to update follow status.", "error");
+            }
+        })
+        .finally(() => {
+            if (button) button.disabled = false;
+        });
+    };
+
+    // Global listener for follow buttons
+    document.addEventListener("click", function(e) {
+        const btn = e.target.closest(".follow-btn");
+        if (btn && btn.dataset.username) {
+            e.preventDefault();
+            const username = btn.dataset.username;
+            window.toggleFollow(username, btn);
+        }
+    });
+
+    // Hover state for Following / Requested buttons -> dynamically show action text on hover
+    document.addEventListener("mouseover", function(e) {
+        const btn = e.target.closest(".follow-btn");
+        if (btn && !btn.disabled) {
+            if (btn.dataset.status === "following" || btn.dataset.isFollowing === "true") {
+                btn.textContent = "Unfollow";
+            } else if (btn.dataset.status === "requested" || btn.dataset.isRequested === "true") {
+                btn.textContent = "Cancel Request";
+            }
+        }
+    });
+    document.addEventListener("mouseout", function(e) {
+        const btn = e.target.closest(".follow-btn");
+        if (btn && !btn.disabled) {
+            if (btn.dataset.status === "following" || btn.dataset.isFollowing === "true") {
+                btn.textContent = "Following";
+            } else if (btn.dataset.status === "requested" || btn.dataset.isRequested === "true") {
+                btn.textContent = "Requested";
+            }
+        }
+    });
+
+    /* ================= ACCEPT / REJECT FOLLOW REQUEST AJAX ================= */
+    function updateBadgeCount(pendingCount) {
+        const badgeElem = document.getElementById("nav-request-count-badge");
+        const dotElem = document.getElementById("mobile-request-dot");
+        const pageBadge = document.getElementById("pending-count-badge");
+
+        if (pageBadge) {
+            pageBadge.textContent = `${pendingCount} Pending`;
+        }
+
+        if (badgeElem) {
+            badgeElem.textContent = pendingCount;
+            if (pendingCount > 0) {
+                badgeElem.classList.remove("hidden");
+            } else {
+                badgeElem.classList.add("hidden");
+            }
+        }
+
+        if (dotElem) {
+            if (pendingCount > 0) {
+                dotElem.classList.remove("hidden");
+            } else {
+                dotElem.classList.add("hidden");
+            }
+        }
+    }
+
+    document.addEventListener("click", function(e) {
+        const acceptBtn = e.target.closest(".accept-request-btn");
+        const rejectBtn = e.target.closest(".reject-request-btn");
+
+        if (acceptBtn || rejectBtn) {
+            e.preventDefault();
+            const btn = acceptBtn || rejectBtn;
+            const requestId = btn.dataset.requestId;
+            const action = acceptBtn ? "accept" : "reject";
+            btn.disabled = true;
+
+            fetch(`/interactions/requests/${action}/${requestId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrftoken,
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Content-Type": "application/json"
+                },
+                credentials: "same-origin"
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const card = document.getElementById(`request-card-${requestId}`);
+                    if (card) {
+                        card.style.opacity = "0";
+                        card.style.transform = "scale(0.95)";
+                        card.style.transition = "all 0.3s ease";
+                        setTimeout(() => {
+                            card.remove();
+                            const container = document.getElementById("requests-list-container");
+                            if (container && container.querySelectorAll(".follow-request-card").length === 0) {
+                                container.innerHTML = `
+                                    <div class="text-center py-12 space-y-3" id="empty-requests-msg">
+                                        <div class="w-16 h-16 rounded-full bg-surface-container-low mx-auto flex items-center justify-center text-on-surface-variant/40">
+                                            <span class="material-symbols-outlined text-3xl">person_add_disabled</span>
+                                        </div>
+                                        <h3 class="font-bold text-lg text-on-surface">No Follow Requests</h3>
+                                        <p class="text-xs text-on-surface-variant max-w-xs mx-auto">When people request to follow you, their requests will appear here.</p>
+                                    </div>
+                                `;
+                            }
+                        }, 300);
+                    }
+                    if (data.pending_count !== undefined) {
+                        updateBadgeCount(data.pending_count);
+                    }
+                    showToast(data.message, "info");
+                } else {
+                    showToast(data.message || "Action failed.", "error");
+                    btn.disabled = false;
+                }
+            })
+            .catch(err => {
+                showToast("Request failed. Please try again.", "error");
+                btn.disabled = false;
+            });
+        }
+    });
+
+    /* ================= LIVE NAVBAR SEARCH DROPDOWN ================= */
+    const searchInput = document.getElementById("navSearch");
+    const searchDropdown = document.getElementById("searchResultsDropdown");
+    let searchDebounce = null;
+
+    if (searchInput && searchDropdown) {
+        searchInput.addEventListener("input", function () {
+            clearTimeout(searchDebounce);
+            const query = this.value.trim();
+
+            if (!query) {
+                searchDropdown.classList.add("hidden");
+                searchDropdown.innerHTML = "";
+                return;
+            }
+
+            searchDebounce = setTimeout(() => {
+                fetch(`/search/?q=${encodeURIComponent(query)}`, {
+                    headers: { "X-Requested-With": "XMLHttpRequest" }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    const hasUsers = data.users && data.users.length > 0;
+                    const hasPosts = data.posts && data.posts.length > 0;
+
+                    if (!hasUsers && !hasPosts) {
+                        searchDropdown.innerHTML = `<div class="p-4 text-xs text-on-surface-variant text-center italic">No matching people or posts found for "${query}"</div>`;
+                        searchDropdown.classList.remove("hidden");
+                        return;
+                    }
+
+                    let html = '';
+
+                    // People Section
+                    if (hasUsers) {
+                        html += `<div class="text-[11px] font-bold text-on-surface-variant/70 px-2 py-1 flex items-center gap-1 uppercase tracking-wider"><span class="material-symbols-outlined text-xs">group</span> People</div>`;
+                        html += data.users.map(u => `
+                            <div class="flex items-center justify-between p-2 hover:bg-surface-container-low rounded-xl transition-colors">
+                                <a href="/profile/${u.username}/" class="flex items-center gap-2.5 min-w-0 flex-1 me-2">
+                                    <img src="${u.avatar_url}" alt="${u.username}" class="w-8 h-8 rounded-full object-cover border border-white">
+                                    <div class="min-w-0">
+                                        <p class="font-bold text-xs text-on-surface truncate">@${u.username}</p>
+                                        <p class="text-[11px] text-on-surface-variant/70 truncate">${u.full_name}</p>
+                                    </div>
+                                </a>
+                                ${!u.is_self ? `
+                                    <button type="button" 
+                                            class="follow-btn px-3 py-1 rounded-full text-xs font-semibold ${
+                                                u.status === 'following' ? 'bg-surface-container-low text-on-surface border border-outline-variant hover:border-red-500 hover:text-red-500' :
+                                                u.status === 'requested' ? 'bg-surface-container-low text-primary border border-primary/30' :
+                                                'vivid-gradient text-white'
+                                            }"
+                                            data-username="${u.username}"
+                                            data-status="${u.status || 'none'}"
+                                            data-is-following="${u.is_following}"
+                                            data-is-requested="${u.is_requested}">
+                                        ${u.status === 'following' ? 'Following' : (u.status === 'requested' ? 'Requested' : 'Follow')}
+                                    </button>
+                                ` : `<span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">You</span>`}
+                            </div>
+                        `).join('');
+                    }
+
+                    // Posts Section
+                    if (hasPosts) {
+                        if (hasUsers) html += `<div class="my-1 border-t border-outline-variant/20"></div>`;
+                        html += `<div class="text-[11px] font-bold text-on-surface-variant/70 px-2 py-1 flex items-center gap-1 uppercase tracking-wider"><span class="material-symbols-outlined text-xs">grid_view</span> Posts</div>`;
+                        html += data.posts.map(p => `
+                            <a href="/profile/${p.author_username}/#post-${p.id}" class="flex items-center justify-between p-2 hover:bg-surface-container-low rounded-xl transition-colors gap-2">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <img src="${p.author_avatar}" alt="${p.author_username}" class="w-7 h-7 rounded-full object-cover border border-white shrink-0">
+                                    <div class="min-w-0">
+                                        <p class="font-bold text-[11px] text-on-surface truncate">@${p.author_username}</p>
+                                        <p class="text-[11px] text-on-surface-variant/80 truncate">${p.caption}</p>
+                                    </div>
+                                </div>
+                                ${p.image_url ? `<img src="${p.image_url}" alt="Post thumbnail" class="w-8 h-8 rounded-lg object-cover shrink-0 border border-outline-variant/30">` : ''}
+                            </a>
+                        `).join('');
+                    }
+
+                    // Footer Link
+                    html += `
+                        <a href="/search/?q=${encodeURIComponent(query)}" class="block p-2 text-center text-xs font-bold text-primary hover:bg-surface-container-low rounded-xl border-t border-outline-variant/20 mt-1">
+                            See all results for "${query}" →
+                        </a>
+                    `;
+
+                    searchDropdown.innerHTML = html;
+                    searchDropdown.classList.remove("hidden");
+                })
+                .catch(err => console.error("Search error:", err));
+            }, 250);
+        });
+
+        // Hide search dropdown on click outside
+        document.addEventListener("click", function (e) {
+            if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+                searchDropdown.classList.add("hidden");
+            }
+        });
+    }
+
+    /* ================= NOTIFICATION DROPDOWN & MARK ALL READ ================= */
+    const notifToggle = document.getElementById("notifDropdownToggle");
+    const notifMenu = document.getElementById("notifDropdownMenu");
+
+    if (notifToggle && notifMenu) {
+        notifToggle.addEventListener("click", function (e) {
+            e.stopPropagation();
+            notifMenu.classList.toggle("hidden");
+        });
+
+        document.addEventListener("click", function (e) {
+            if (!notifMenu.contains(e.target) && !notifToggle.contains(e.target)) {
+                notifMenu.classList.add("hidden");
+            }
+        });
+    }
+
+    function markAllNotificationsRead() {
+        fetch("/notifications/mark-all-read/", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrftoken,
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Type": "application/json"
+            },
+            credentials: "same-origin"
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const navBadge = document.getElementById("nav-notif-count-badge");
+                const mobileDot = document.getElementById("mobile-notif-dot");
+                const pageBadge = document.getElementById("unread-count-badge");
+                const markAllBtn = document.getElementById("page-mark-all-read-btn");
+
+                if (navBadge) navBadge.classList.add("hidden");
+                if (mobileDot) mobileDot.classList.add("hidden");
+                if (pageBadge) pageBadge.remove();
+                if (markAllBtn) markAllBtn.remove();
+
+                document.querySelectorAll(".notification-item").forEach(item => {
+                    item.classList.remove("bg-surface-container-low/90", "border-primary/20", "shadow-sm");
+                    item.classList.add("bg-surface", "border-outline-variant/20");
+                    const dot = item.querySelector(".bg-secondary.animate-pulse");
+                    if (dot) dot.remove();
+                });
+
+                document.querySelectorAll("#dropdownNotifList a").forEach(item => {
+                    item.classList.remove("bg-primary/5");
+                    const dot = item.querySelector(".bg-secondary");
+                    if (dot) dot.remove();
+                });
+
+                showToast("All notifications marked as read", "info");
+            }
+        })
+        .catch(err => console.error("Mark all read error:", err));
+    }
+
+    const dropdownMarkAllBtn = document.getElementById("dropdownMarkAllReadBtn");
+    if (dropdownMarkAllBtn) {
+        dropdownMarkAllBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            markAllNotificationsRead();
+        });
+    }
+
+    const pageMarkAllBtn = document.getElementById("page-mark-all-read-btn");
+    if (pageMarkAllBtn) {
+        pageMarkAllBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            markAllNotificationsRead();
+        });
+    }
+
+});
+
+</script>
+
+<!-- =========================================================
+     GLOBAL MOBILE-FIRST STORY VIEWER OVERLAY
+========================================================= -->
+<div id="storyViewerModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-0 md:p-4">
+    <div class="relative w-full max-w-sm md:max-w-md h-full md:h-[85vh] bg-surface-container-dark rounded-none md:rounded-3xl overflow-hidden flex flex-col justify-between shadow-2xl">
+        
+        <!-- TOP CONTROLS & PROGRESS BAR -->
+        <div class="absolute top-0 inset-x-0 z-20 p-4 bg-gradient-to-b from-black/80 via-black/40 to-transparent space-y-3">
+            <!-- PROGRESS BAR CONTAINER -->
+            <div id="storyProgressBarContainer" class="flex gap-1.5 w-full">
+                <!-- Dynamically populated progress segments -->
+            </div>
+
+            <!-- USER HEADER -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full p-[2px] vivid-gradient shrink-0">
+                        <img id="storyViewerAvatar" src="" alt="Avatar" class="w-full h-full object-cover rounded-full border border-white">
+                    </div>
+                    <div>
+                        <p id="storyViewerUsername" class="font-bold text-sm text-white truncate"></p>
+                        <p id="storyViewerTime" class="text-[11px] text-white/70"></p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeStoryViewer()" class="w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-colors">
+                    <span class="material-symbols-outlined text-xl">close</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- TAP ZONES & MAIN IMAGE CONTAINER -->
+        <div class="relative w-full h-full flex items-center justify-center bg-black">
+            <img id="storyViewerImage" src="" alt="Story Image" class="w-full h-full object-contain">
+            
+            <!-- LEFT / RIGHT TOUCH NAVIGATION ZONES -->
+            <div class="absolute inset-y-0 left-0 w-1/3 z-10 cursor-pointer" onclick="prevStory()"></div>
+            <div class="absolute inset-y-0 right-0 w-2/3 z-10 cursor-pointer" onclick="nextStory()"></div>
+        </div>
+
+        <!-- BOTTOM CAPTION OVERLAY -->
+        <div id="storyCaptionContainer" class="absolute bottom-0 inset-x-0 z-20 p-5 bg-gradient-to-t from-black/90 via-black/50 to-transparent text-white">
+            <p id="storyViewerCaption" class="text-sm font-medium leading-relaxed"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentStoryData = [];
+let currentStoryIndex = 0;
+let storyTimer = null;
+const STORY_DURATION = 5000;
+
+function openStoryViewer(username) {
+    if (!username) return;
+    fetch(`/posts/stories/${username}/`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success || !data.stories || data.stories.length === 0) {
+                if (window.showToast) window.showToast("No active stories found.", "info");
+                return;
+            }
+            currentStoryData = data.stories;
+            currentStoryIndex = 0;
+
+            document.getElementById('storyViewerAvatar').src = data.avatar_url || `https://ui-avatars.com/api/?name=${data.username}&background=6b38d4&color=fff`;
+            document.getElementById('storyViewerUsername').textContent = '@' + data.username;
+            
+            document.getElementById('storyViewerModal').classList.remove('hidden');
+            renderStory(0);
+        })
+        .catch(err => {
+            if (window.showToast) window.showToast("Failed to load story.", "error");
+        });
+}
+
+function renderStory(index) {
+    if (index < 0 || index >= currentStoryData.length) {
+        closeStoryViewer();
+        return;
+    }
+    currentStoryIndex = index;
+    const story = currentStoryData[index];
+
+    document.getElementById('storyViewerImage').src = story.image_url;
+    document.getElementById('storyViewerTime').textContent = story.created_at;
+    document.getElementById('storyViewerCaption').textContent = story.caption || '';
+    
+    const captionBox = document.getElementById('storyCaptionContainer');
+    if (story.caption && story.caption.trim()) {
+        captionBox.classList.remove('hidden');
+    } else {
+        captionBox.classList.add('hidden');
+    }
+
+    renderStoryProgressBars();
+    startStoryTimer();
+}
+
+function renderStoryProgressBars() {
+    const container = document.getElementById('storyProgressBarContainer');
+    container.innerHTML = '';
+    
+    currentStoryData.forEach((_, idx) => {
+        const seg = document.createElement('div');
+        seg.className = 'h-1 flex-1 bg-white/30 rounded-full overflow-hidden';
+        const fill = document.createElement('div');
+        fill.id = `story-progress-fill-${idx}`;
+        fill.className = 'h-full bg-white transition-all ease-linear';
+        if (idx < currentStoryIndex) {
+            fill.style.width = '100%';
+        } else if (idx === currentStoryIndex) {
+            fill.style.width = '0%';
+            setTimeout(() => {
+                fill.style.transitionDuration = `${STORY_DURATION}ms`;
+                fill.style.width = '100%';
+            }, 50);
+        } else {
+            fill.style.width = '0%';
+        }
+        seg.appendChild(fill);
+        container.appendChild(seg);
+    });
+}
+
+function startStoryTimer() {
+    clearTimeout(storyTimer);
+    storyTimer = setTimeout(() => {
+        nextStory();
+    }, STORY_DURATION);
+}
+
+function nextStory() {
+    if (currentStoryIndex < currentStoryData.length - 1) {
+        renderStory(currentStoryIndex + 1);
+    } else {
+        closeStoryViewer();
+    }
+}
+
+function prevStory() {
+    if (currentStoryIndex > 0) {
+        renderStory(currentStoryIndex - 1);
+    } else {
+        renderStory(0);
+    }
+}
+
+function closeStoryViewer() {
+    clearTimeout(storyTimer);
+    document.getElementById('storyViewerModal')?.classList.add('hidden');
+}
+
+document.getElementById('storyViewerModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeStoryViewer();
+});
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}Create Post | Nexora{% endblock %}
+
+{% block content %}
+
+<div class="max-w-2xl mx-auto">
+
+    <div class="bg-surface rounded-3xl p-6 md:p-8 border border-outline-variant/30 ambient-shadow-low space-y-6">
+
+
+        <!-- HEADER -->
+
+        <div class="text-center space-y-2">
+
+            <div class="w-12 h-12 rounded-full vivid-gradient mx-auto flex items-center justify-center text-white text-2xl shadow-md">
+
+                <span class="material-symbols-outlined">add_a_photo</span>
+
+            </div>
+
+            <h2 class="font-extrabold text-2xl text-on-surface">Create New Post</h2>
+
+            <p class="text-xs text-on-surface-variant">Share your memories with the Nexora community.</p>
+
+        </div>
+
+
+        <!-- FORM -->
+
+        <form method="POST" enctype="multipart/form-data" id="postForm" class="space-y-6">
+
+            {% csrf_token %}
+
+
+            <!-- ERROR CONTAINER -->
+
+            {% if form.errors %}
+
+                <div class="bg-danger/10 border border-danger/20 rounded-2xl p-4 text-xs text-danger space-y-1">
+
+                    <strong>Please fix the following errors:</strong>
+
+                    <ul class="list-disc ps-4 space-y-0.5">
+
+                        {% for field in form %}
+
+                            {% for error in field.errors %}
+
+                                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+
+                            {% endfor %}
+
+                        {% endfor %}
+
+                        {% for error in form.non_field_errors %}
+
+                            <li>{{ error }}</li>
+
+                        {% endfor %}
+
+                    </ul>
+
+                </div>
+
+            {% endif %}
+
+
+            <!-- DRAG & DROP UPLOADER -->
+
+            <div id="drop-area" class="border-2 border-dashed border-primary/40 hover:border-primary rounded-3xl p-8 text-center bg-surface-container-low/50 hover:bg-surface-container-low transition-colors cursor-pointer space-y-3">
+
+                <input type="file" name="image" id="imageInput" accept="image/*" required hidden>
+
+                <div class="w-14 h-14 rounded-full vivid-gradient/10 text-primary mx-auto flex items-center justify-center text-3xl">
+
+                    <span class="material-symbols-outlined text-3xl text-primary">cloud_upload</span>
+
+                </div>
+
+                <div>
+
+                    <h4 class="font-bold text-sm text-on-surface">Drag & Drop Image Here</h4>
+
+                    <p class="text-xs text-on-surface-variant">or click anywhere to browse from your device</p>
+
+                </div>
+
+                <button type="button" id="browseBtn" class="px-5 py-2 rounded-full border border-primary text-primary font-semibold text-xs hover:bg-primary/5 transition-colors">
+
+                    Browse Files
+
+                </button>
+
+            </div>
+
+
+            <!-- PREVIEW CARD -->
+
+            <div id="previewContainer" class="hidden rounded-2xl overflow-hidden border border-outline-variant/30 max-h-80 bg-black/5 flex items-center justify-center">
+
+                <img id="preview" class="w-full h-full object-cover max-h-80">
+
+            </div>
+
+
+            <!-- CAPTION -->
+
+            <div class="space-y-2">
+
+                <label class="block font-semibold text-xs text-on-surface uppercase tracking-wider">Caption</label>
+
+                <textarea name="caption"
+                          id="caption"
+                          maxlength="1000"
+                          rows="4"
+                          class="w-full bg-surface-container-low border border-outline-variant/40 rounded-2xl p-4 text-sm text-on-surface outline-none focus:border-primary transition-colors resize-none"
+                          placeholder="What's happening today?"></textarea>
+
+                <div class="flex items-center justify-between text-xs text-on-surface-variant">
+
+                    <!-- EMOJI BAR -->
+
+                    <div class="emoji-bar flex gap-2 text-base cursor-pointer">
+
+                        <span>😀</span>
+
+                        <span>😍</span>
+
+                        <span>🔥</span>
+
+                        <span>❤️</span>
+
+                        <span>🎉</span>
+
+                        <span>📷</span>
+
+                        <span>✨</span>
+
+                    </div>
+
+                    <div>
+
+                        <span id="count">0</span>/1000 Characters
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PUBLISH BUTTON -->
+
+            <button type="submit" class="w-full py-3 rounded-full vivid-gradient text-white font-bold text-sm shadow-[0px_4px_12px_rgba(139,92,246,0.25)] hover:opacity-95 transition-transform active:scale-98 flex items-center justify-center gap-2">
+
+                <span class="material-symbols-outlined text-lg">send</span>
+
+                <span>Publish Post</span>
+
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const input = document.getElementById("imageInput");
+
+const preview = document.getElementById("preview");
+
+const previewContainer = document.getElementById("previewContainer");
+
+const browse = document.getElementById("browseBtn");
+
+const drop = document.getElementById("drop-area");
+
+
+browse.onclick = (e) => {
+
+    e.stopPropagation();
+
+    input.click();
+
+};
+
+
+drop.onclick = () => input.click();
+
+
+drop.addEventListener("dragover", (e) => {
+
+    e.preventDefault();
+
+    drop.classList.add("border-primary", "bg-primary/5");
+
+});
+
+
+drop.addEventListener("dragleave", () => {
+
+    drop.classList.remove("border-primary", "bg-primary/5");
+
+});
+
+
+drop.addEventListener("drop", (e) => {
+
+    e.preventDefault();
+
+    drop.classList.remove("border-primary", "bg-primary/5");
+
+    const file = e.dataTransfer.files[0];
+
+    if (file) {
+
+        input.files = e.dataTransfer.files;
+
+        showPreview(file);
+
+    }
+
+});
+
+
+input.onchange = e => {
+
+    if (e.target.files[0]) {
+
+        showPreview(e.target.files[0]);
+
+    }
+
+};
+
+
+function showPreview(file) {
+
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+
+        preview.src = e.target.result;
+
+        previewContainer.classList.remove("hidden");
+
+    };
+
+    reader.readAsDataURL(file);
+
+}
+
+
+const caption = document.getElementById("caption");
+
+const count = document.getElementById("count");
+
+
+caption.addEventListener("input", () => {
+
+    count.innerText = caption.value.length;
+
+});
+
+
+document.querySelectorAll(".emoji-bar span").forEach(e => {
+
+    e.onclick = () => {
+
+        caption.value += e.innerText;
+
+        count.innerText = caption.value.length;
+
+    };
+
+});
+
+</script>
+
+{% endblock %}

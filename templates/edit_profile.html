@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit Profile | Nexora{% endblock %}
+
+{% block content %}
+
+<div class="max-w-2xl mx-auto">
+
+    <div class="bg-surface rounded-3xl border border-outline-variant/30 ambient-shadow-low overflow-hidden">
+
+        <!-- HEADER -->
+
+        <div class="vivid-gradient px-6 py-6 text-center text-white relative overflow-hidden">
+
+            <div class="absolute inset-0 opacity-20" style="background: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.3), transparent 50%);"></div>
+
+            <div class="relative z-10 space-y-1">
+
+                <h2 class="font-extrabold text-xl">Edit Profile</h2>
+
+                <p class="text-white/80 text-xs">Keep your Nexora profile up to date.</p>
+
+            </div>
+
+        </div>
+
+
+        <!-- FORM BODY -->
+
+        <div class="p-6 md:p-8 space-y-6">
+
+            <!-- CURRENT AVATAR PREVIEW -->
+
+            <div class="flex justify-center">
+
+                <div class="relative w-28 h-28">
+
+                    <div class="absolute inset-0 rounded-full vivid-gradient opacity-20 blur-lg"></div>
+
+                    {% if request.user.profile.profile_picture %}
+
+                        <img src="{{ request.user.profile.profile_picture.url }}"
+                             class="w-full h-full object-cover rounded-full border-4 border-white relative z-10 ambient-shadow-low">
+
+                    {% else %}
+
+                        <img src="https://ui-avatars.com/api/?name={{ request.user.username }}&background=6b38d4&color=fff&size=128"
+                             class="w-full h-full object-cover rounded-full border-4 border-white relative z-10 ambient-shadow-low">
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <form method="POST" enctype="multipart/form-data" class="space-y-5">
+
+                {% csrf_token %}
+
+                <!-- PROFILE PICTURE -->
+
+                <div class="space-y-1.5">
+
+                    <label class="block font-semibold text-xs text-on-surface uppercase tracking-wider">Profile Picture</label>
+
+                    {{ form.profile_picture }}
+
+                </div>
+
+                <!-- COVER PICTURE -->
+
+                <div class="space-y-1.5">
+
+                    <label class="block font-semibold text-xs text-on-surface uppercase tracking-wider">Cover Picture</label>
+
+                    {{ form.cover_picture }}
+
+                </div>
+
+                <!-- BIO -->
+
+                <div class="space-y-1.5">
+
+                    <label class="block font-semibold text-xs text-on-surface uppercase tracking-wider">Bio</label>
+
+                    <textarea name="bio"
+                              class="w-full bg-surface-container-low border border-outline-variant/40 rounded-2xl p-4 text-sm text-on-surface outline-none focus:border-primary transition-colors resize-none"
+                              rows="3"
+                              placeholder="Write something about yourself...">{{ form.bio.value|default:'' }}</textarea>
+
+                </div>
+
+                <!-- LOCATION & COLLEGE -->
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <div class="space-y-1.5">
+
+                        <label class="block font-semibold text-xs text-on-surface uppercase tracking-wider">Location</label>
+
+                        <input type="text"
+                               name="location"
+                               value="{{ form.location.value|default:'' }}"
+                               class="w-full bg-surface-container-low border border-outline-variant/40 rounded-full px-5 py-3 text-sm text-on-surface outline-none focus:border-primary transition-colors"
+                               placeholder="Your location">
+
+                    </div>
+
+                    <div class="space-y-1.5">
+
+                        <label class="block font-semibold text-xs text-on-surface uppercase tracking-wider">College</label>
+
+                        <input type="text"
+                               name="college"
+                               value="{{ form.college.value|default:'' }}"
+                               class="w-full bg-surface-container-low border border-outline-variant/40 rounded-full px-5 py-3 text-sm text-on-surface outline-none focus:border-primary transition-colors"
+                               placeholder="College">
+
+                    </div>
+
+                </div>
+
+                <!-- PROFESSION & WEBSITE -->
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <div class="space-y-1.5">
+
+                        <label class="block font-semibold text-xs text-on-surface uppercase tracking-wider">Profession</label>
+
+                        <input type="text"
+                               name="profession"
+                               value="{{ form.profession.value|default:'' }}"
+                               class="w-full bg-surface-container-low border border-outline-variant/40 rounded-full px-5 py-3 text-sm text-on-surface outline-none focus:border-primary transition-colors"
+                               placeholder="Profession">
+
+                    </div>
+
+                    <div class="space-y-1.5">
+
+                        <label class="block font-semibold text-xs text-on-surface uppercase tracking-wider">Website</label>
+
+                        <input type="url"
+                               name="website"
+                               value="{{ form.website.value|default:'' }}"
+                               class="w-full bg-surface-container-low border border-outline-variant/40 rounded-full px-5 py-3 text-sm text-on-surface outline-none focus:border-primary transition-colors"
+                               placeholder="https://example.com">
+
+                    </div>
+
+                </div>
+
+                <!-- ACTIONS -->
+
+                <div class="flex items-center justify-between pt-4">
+
+                    <a href="{% url 'profile' %}" class="px-6 py-2.5 rounded-full border border-outline-variant text-on-surface-variant font-semibold text-sm hover:bg-surface-container-low transition-colors">
+
+                        Cancel
+
+                    </a>
+
+                    <button type="submit" class="px-8 py-2.5 rounded-full vivid-gradient text-white font-bold text-sm shadow-[0px_4px_12px_rgba(139,92,246,0.25)] hover:opacity-95 transition-transform active:scale-[0.98] flex items-center gap-2">
+
+                        <span class="material-symbols-outlined text-lg">save</span>
+
+                        Save Changes
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

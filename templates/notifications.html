@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications | Nexora{% endblock %}
+
+{% block content %}
+
+<div class="max-w-2xl mx-auto space-y-6">
+
+    <!-- =========================================================
+         HEADER CARD
+    ========================================================= -->
+
+    <div class="bg-surface rounded-3xl p-6 md:p-8 border border-outline-variant/30 ambient-shadow-low">
+
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-outline-variant/20 flex-wrap gap-3">
+
+            <div class="flex items-center gap-3">
+
+                <div class="w-11 h-11 rounded-full vivid-gradient flex items-center justify-center text-white font-bold shadow-[0px_4px_12px_rgba(139,92,246,0.2)]">
+
+                    <span class="material-symbols-outlined text-2xl">notifications</span>
+
+                </div>
+
+                <div>
+
+                    <h1 class="font-extrabold text-2xl text-on-surface tracking-tight">Notifications</h1>
+
+                    <p class="text-xs text-on-surface-variant/70">Updates on your posts and community activity</p>
+
+                </div>
+
+            </div>
+
+
+            <div class="flex items-center gap-3">
+
+                {% if unread_count > 0 %}
+
+                <span class="bg-primary/10 text-primary text-xs font-extrabold px-3.5 py-1.5 rounded-full" id="unread-count-badge">
+
+                    {{ unread_count }} Unread
+
+                </span>
+
+                <button type="button"
+
+                        id="page-mark-all-read-btn"
+
+                        class="px-4 py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container text-on-surface-variant text-xs font-semibold border border-outline-variant/30 transition-all active:scale-95 flex items-center gap-1.5">
+
+                    <span class="material-symbols-outlined text-base">done_all</span>
+
+                    <span>Mark all as read</span>
+
+                </button>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= TAB NAVIGATION ================= -->
+
+        <div class="flex items-center gap-2 mb-6">
+
+            <a href="{% url 'notifications_list' %}?filter=all"
+
+               class="px-5 py-2 rounded-full text-xs font-bold transition-all {% if current_filter != 'unread' %}vivid-gradient text-white shadow-sm{% else %}bg-surface-container-low text-on-surface-variant hover:bg-surface-container{% endif %}">
+
+                All
+
+            </a>
+
+            <a href="{% url 'notifications_list' %}?filter=unread"
+
+               class="px-5 py-2 rounded-full text-xs font-bold transition-all {% if current_filter == 'unread' %}vivid-gradient text-white shadow-sm{% else %}bg-surface-container-low text-on-surface-variant hover:bg-surface-container{% endif %}">
+
+                Unread {% if unread_count > 0 %}({{ unread_count }}){% endif %}
+
+            </a>
+
+        </div>
+
+
+        <!-- ================= NOTIFICATIONS LIST ================= -->
+
+        <div class="space-y-3" id="notifications-list-container">
+
+            {% for notif in notifications %}
+
+            <a href="{% url 'open_notification' notif.id %}"
+
+               class="notification-item flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 {% if not notif.is_read %}bg-surface-container-low/90 border-primary/20 shadow-sm{% else %}bg-surface hover:bg-surface-container-low/50 border-outline-variant/20{% endif %}"
+
+               data-id="{{ notif.id }}">
+
+                <div class="flex items-center gap-3.5 min-w-0 flex-1 me-3">
+
+                    <!-- SENDER AVATAR WITH NOTIFICATION ICON BADGE -->
+
+                    <div class="relative shrink-0">
+
+                        <div class="w-12 h-12 rounded-full p-[2px] vivid-gradient">
+
+                            {% if notif.sender.profile.profile_picture %}
+
+                                <img src="{{ notif.sender.profile.profile_picture.url }}" alt="{{ notif.sender.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                            {% else %}
+
+                                <img src="https://ui-avatars.com/api/?name={{ notif.sender.username }}&background=6b38d4&color=fff" alt="{{ notif.sender.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- ICON BADGE OVERLAY -->
+
+                        <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-white text-[11px] border-2 border-white shadow-sm
+
+                                     {% if notif.notification_type == 'like' %}bg-red-500
+
+                                     {% elif notif.notification_type == 'comment' %}bg-purple-600
+
+                                     {% elif notif.notification_type == 'mention' %}bg-pink-500
+
+                                     {% elif notif.notification_type == 'follow_request' %}bg-primary
+
+                                     {% else %}bg-emerald-500{% endif %}">
+
+                            <span class="material-symbols-outlined text-[12px] fill">
+
+                                {% if notif.notification_type == 'like' %}favorite
+
+                                {% elif notif.notification_type == 'comment' %}chat_bubble
+
+                                {% elif notif.notification_type == 'mention' %}alternate_email
+
+                                {% elif notif.notification_type == 'follow_request' %}person_add
+
+                                {% else %}person_check{% endif %}
+
+                            </span>
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- CONTENT TEXT -->
+
+                    <div class="min-w-0 flex-1">
+
+                        <p class="text-xs text-on-surface leading-snug">
+
+                            <span class="font-bold hover:underline">@{{ notif.sender.username }}</span>
+
+                            {% if notif.notification_type == 'like' %}
+
+                                liked your post.
+
+                            {% elif notif.notification_type == 'comment' %}
+
+                                commented on your post.
+
+                            {% elif notif.notification_type == 'mention' %}
+
+                                mentioned you in a post.
+
+                            {% elif notif.notification_type == 'follow_request' %}
+
+                                requested to follow you.
+
+                            {% elif notif.notification_type == 'follow_accept' %}
+
+                                accepted your follow request.
+
+                            {% elif notif.notification_type == 'new_follower' %}
+
+                                started following you.
+
+                            {% endif %}
+
+                        </p>
+
+                        <p class="text-[10px] text-on-surface-variant/60 mt-1 flex items-center gap-1">
+
+                            <span class="material-symbols-outlined text-[12px]">schedule</span>
+
+                            <span>{{ notif.created_at|timesince }} ago</span>
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- RIGHT MEDIA THUMBNAIL / UNREAD INDICATOR -->
+
+                <div class="flex items-center gap-3 shrink-0">
+
+                    {% if notif.post and notif.post.image %}
+
+                    <div class="w-10 h-10 rounded-xl overflow-hidden bg-surface-container-low border border-outline-variant/30">
+
+                        <img src="{{ notif.post.image.url }}" alt="Post thumbnail" class="w-full h-full object-cover">
+
+                    </div>
+
+                    {% endif %}
+
+
+                    {% if not notif.is_read %}
+
+                    <span class="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse" title="Unread"></span>
+
+                    {% endif %}
+
+                </div>
+
+            </a>
+
+            {% empty %}
+
+            <div class="text-center py-12 space-y-3" id="empty-notifications-msg">
+
+                <div class="w-16 h-16 rounded-full bg-surface-container-low mx-auto flex items-center justify-center text-on-surface-variant/40">
+
+                    <span class="material-symbols-outlined text-3xl">notifications_off</span>
+
+                </div>
+
+                <h3 class="font-bold text-lg text-on-surface">No Notifications</h3>
+
+                <p class="text-xs text-on-surface-variant max-w-xs mx-auto">When people interact with your posts or profile, you'll see updates here.</p>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+{% load post_tags %}
+
+{% block title %}{% if query %}Search "{{ query }}"{% else %}Search{% endif %} | Nexora{% endblock %}
+
+{% block content %}
+
+<div class="max-w-4xl mx-auto space-y-6">
+
+    <!-- =========================================================
+         SEARCH HEADER CARD
+    ========================================================= -->
+
+    <div class="bg-surface rounded-3xl p-6 md:p-8 border border-outline-variant/30 ambient-shadow-low">
+
+        <!-- SEARCH INPUT FORM -->
+
+        <form action="{% url 'search_users' %}" method="GET" class="mb-6">
+
+            <div class="relative flex items-center bg-surface-container-low border border-outline-variant/40 rounded-full px-5 py-3 focus-within:border-primary focus-within:bg-surface transition-all shadow-sm">
+
+                <span class="material-symbols-outlined text-primary text-2xl me-3">search</span>
+
+                <input type="text"
+
+                       name="q"
+
+                       value="{{ query }}"
+
+                       placeholder="Search people, usernames, professions, captions, topics..."
+
+                       class="w-full bg-transparent border-none outline-none text-base text-on-surface placeholder-on-surface-variant/60"
+
+                       autocomplete="off"
+
+                       required>
+
+                <input type="hidden" name="category" value="{{ category }}">
+
+                <button type="submit" class="px-5 py-2 rounded-full vivid-gradient text-white text-xs font-bold shadow-sm hover:opacity-95 transition-opacity shrink-0 me-1">
+
+                    Search
+
+                </button>
+
+            </div>
+
+        </form>
+
+
+        <!-- CATEGORY FILTER TABS -->
+
+        <div class="flex items-center gap-2 border-b border-outline-variant/20 pb-4">
+
+            <a href="{% url 'search_users' %}?q={{ query|urlencode }}&category=all"
+
+               class="px-5 py-2 rounded-full text-xs font-bold transition-all {% if category == 'all' %}vivid-gradient text-white shadow-sm{% else %}bg-surface-container-low text-on-surface-variant hover:bg-surface-container{% endif %}">
+
+                All {% if query %}({{ users_count|add:posts_count }}){% endif %}
+
+            </a>
+
+            <a href="{% url 'search_users' %}?q={{ query|urlencode }}&category=people"
+
+               class="px-5 py-2 rounded-full text-xs font-bold transition-all {% if category == 'people' %}vivid-gradient text-white shadow-sm{% else %}bg-surface-container-low text-on-surface-variant hover:bg-surface-container{% endif %}">
+
+                People {% if query %}({{ users_count }}){% endif %}
+
+            </a>
+
+            <a href="{% url 'search_users' %}?q={{ query|urlencode }}&category=posts"
+
+               class="px-5 py-2 rounded-full text-xs font-bold transition-all {% if category == 'posts' %}vivid-gradient text-white shadow-sm{% else %}bg-surface-container-low text-on-surface-variant hover:bg-surface-container{% endif %}">
+
+                Posts {% if query %}({{ posts_count }}){% endif %}
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         PEOPLE RESULTS SECTION
+    ========================================================= -->
+
+    {% if category == 'all' or category == 'people' %}
+
+        {% if users %}
+
+        <div class="bg-surface rounded-3xl p-6 border border-outline-variant/30 ambient-shadow-low space-y-4">
+
+            <div class="flex items-center justify-between">
+
+                <h3 class="font-extrabold text-lg text-on-surface flex items-center gap-2">
+
+                    <span class="material-symbols-outlined text-primary text-xl">group</span>
+
+                    <span>People</span>
+
+                </h3>
+
+                <span class="text-xs font-bold text-on-surface-variant/70">{{ users_count }} found</span>
+
+            </div>
+
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                {% for u in users %}
+
+                <div class="flex items-center justify-between p-4 rounded-2xl bg-surface-container-low/60 hover:bg-surface-container-low border border-outline-variant/20 transition-all">
+
+                    <a href="{% url 'user_profile' u.username %}" class="flex items-center gap-3.5 min-w-0 flex-1 me-3">
+
+                        <div class="w-12 h-12 rounded-full p-[2px] vivid-gradient shrink-0">
+
+                            {% if u.profile.profile_picture %}
+
+                                <img src="{{ u.profile.profile_picture.url }}" alt="{{ u.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                            {% else %}
+
+                                <img src="https://ui-avatars.com/api/?name={{ u.username }}&background=6b38d4&color=fff" alt="{{ u.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                            {% endif %}
+
+                        </div>
+
+                        <div class="min-w-0">
+
+                            <p class="font-bold text-sm text-on-surface hover:text-primary transition-colors truncate">@{{ u.username }}</p>
+
+                            <p class="text-xs text-on-surface-variant/70 truncate">
+
+                                {% if u.get_full_name %}{{ u.get_full_name }}{% elif u.profile.profession %}{{ u.profile.profession }}{% else %}Nexora Creator{% endif %}
+
+                            </p>
+
+                            {% if u.profile.bio %}
+
+                            <p class="text-[11px] text-on-surface-variant/60 truncate mt-0.5">{{ u.profile.bio }}</p>
+
+                            {% endif %}
+
+                        </div>
+
+                    </a>
+
+
+                    {% if u != user %}
+
+                    <button type="button"
+
+                            class="follow-btn px-4 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all
+
+                                   {% if u.id in user_following_ids %}bg-surface-container-low text-on-surface border border-outline-variant
+
+                                   {% elif u.id in user_requested_ids %}bg-surface-container-low text-primary border border-primary/30
+
+                                   {% else %}vivid-gradient text-white shadow-sm{% endif %}"
+
+                            data-username="{{ u.username }}"
+
+                            data-status="{% if u.id in user_following_ids %}following{% elif u.id in user_requested_ids %}requested{% else %}none{% endif %}"
+
+                            data-is-following="{% if u.id in user_following_ids %}true{% else %}false{% endif %}"
+
+                            data-is-requested="{% if u.id in user_requested_ids %}true{% else %}false{% endif %}">
+
+                        {% if u.id in user_following_ids %}Following{% elif u.id in user_requested_ids %}Requested{% else %}Follow{% endif %}
+
+                    </button>
+
+                    {% else %}
+
+                    <span class="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-bold shrink-0">You</span>
+
+                    {% endif %}
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        {% elif category == 'people' %}
+
+        <div class="bg-surface rounded-3xl p-12 text-center border border-outline-variant/30 ambient-shadow-low space-y-3">
+
+            <span class="material-symbols-outlined text-4xl text-on-surface-variant/40">group_off</span>
+
+            <h3 class="font-bold text-lg text-on-surface">No People Found</h3>
+
+            <p class="text-xs text-on-surface-variant">No matching users for "{{ query }}".</p>
+
+        </div>
+
+        {% endif %}
+
+    {% endif %}
+
+
+    <!-- =========================================================
+         POSTS RESULTS SECTION
+    ========================================================= -->
+
+    {% if category == 'all' or category == 'posts' %}
+
+        {% if posts %}
+
+        <div class="space-y-6">
+
+            <div class="flex items-center justify-between px-2">
+
+                <h3 class="font-extrabold text-lg text-on-surface flex items-center gap-2">
+
+                    <span class="material-symbols-outlined text-secondary text-xl">grid_view</span>
+
+                    <span>Posts</span>
+
+                </h3>
+
+                <span class="text-xs font-bold text-on-surface-variant/70">{{ posts_count }} found</span>
+
+            </div>
+
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                {% for post in posts %}
+
+                <article class="post-card bg-surface rounded-[24px] border border-outline-variant/30 ambient-shadow-low overflow-hidden transition-all duration-300 flex flex-col justify-between" id="post-{{ post.id }}">
+
+                    <!-- POST HEADER -->
+
+                    <div class="p-4 flex items-center justify-between">
+
+                        <div class="flex items-center gap-3 min-w-0">
+
+                            <a href="{% url 'user_profile' post.author.username %}">
+
+                                <div class="w-10 h-10 rounded-full p-[2px] vivid-gradient shrink-0">
+
+                                    {% if post.author.profile.profile_picture %}
+
+                                        <img src="{{ post.author.profile.profile_picture.url }}" alt="{{ post.author.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                                    {% else %}
+
+                                        <img src="https://ui-avatars.com/api/?name={{ post.author.username }}&background=6b38d4&color=fff" alt="{{ post.author.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                                    {% endif %}
+
+                                </div>
+
+                            </a>
+
+                            <div class="min-w-0">
+
+                                <a href="{% url 'user_profile' post.author.username %}" class="font-bold text-sm text-on-surface hover:text-primary transition-colors block truncate">
+
+                                    {{ post.author.username }}
+
+                                </a>
+
+                                <p class="text-xs text-on-surface-variant/70 truncate">{{ post.created_at|timesince }} ago</p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- POST MEDIA -->
+
+                    {% if post.image %}
+
+                    <div class="w-full bg-surface-container-low max-h-72 overflow-hidden flex items-center justify-center relative select-none">
+
+                        <img src="{{ post.image.url }}"
+
+                             alt="Post by {{ post.author.username }}"
+
+                             class="post-image w-full h-full object-cover max-h-72 cursor-pointer"
+
+                             data-post-id="{{ post.id }}">
+
+                    </div>
+
+                    {% endif %}
+
+
+                    <!-- POST ACTIONS & CAPTION -->
+
+                    <div class="p-4 space-y-3">
+
+                        <div class="flex items-center justify-between">
+
+                            <div class="flex items-center gap-4">
+
+                                <button type="button"
+
+                                        class="like-button flex items-center gap-1 text-on-surface-variant hover:text-red-500 transition-colors"
+
+                                        data-post-id="{{ post.id }}">
+
+                                    <span class="like-icon material-symbols-outlined text-xl {% if post.id in liked_post_ids %}text-red-500 fill{% endif %}">favorite</span>
+
+                                    <span class="text-xs font-bold" id="like-count-{{ post.id }}">{{ post.likes.count }}</span>
+
+                                </button>
+
+
+                                <div class="flex items-center gap-1 text-on-surface-variant text-xs font-bold">
+
+                                    <span class="material-symbols-outlined text-xl">chat_bubble</span>
+
+                                    <span>{{ post.comments.count }}</span>
+
+                                </div>
+
+                            </div>
+
+
+                            <button type="button"
+
+                                    class="save-button text-on-surface-variant hover:text-primary transition-colors"
+
+                                    data-post-id="{{ post.id }}">
+
+                                <span class="save-icon material-symbols-outlined text-xl {% if post.id in saved_post_ids %}text-primary fill{% endif %}">bookmark</span>
+
+                            </button>
+
+                        </div>
+
+
+                        <div class="text-xs leading-relaxed text-on-surface line-clamp-3">
+
+                            <a href="{% url 'user_profile' post.author.username %}" class="font-bold me-1">@{{ post.author.username }}</a>
+
+                            <span>{{ post.caption|render_hashtags }}</span>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        {% elif category == 'posts' %}
+
+        <div class="bg-surface rounded-3xl p-12 text-center border border-outline-variant/30 ambient-shadow-low space-y-3">
+
+            <span class="material-symbols-outlined text-4xl text-on-surface-variant/40">search_off</span>
+
+            <h3 class="font-bold text-lg text-on-surface">No Posts Found</h3>
+
+            <p class="text-xs text-on-surface-variant">No matching posts for "{{ query }}".</p>
+
+        </div>
+
+        {% endif %}
+
+    {% endif %}
+
+
+    <!-- =========================================================
+         EMPTY STATE FOR NO RESULTS ACROSS ALL CATEGORIES
+    ========================================================= -->
+
+    {% if users_count == 0 and posts_count == 0 %}
+
+    <div class="bg-surface rounded-3xl p-12 text-center border border-outline-variant/30 ambient-shadow-low space-y-4">
+
+        <div class="w-16 h-16 rounded-full vivid-gradient mx-auto flex items-center justify-center text-white text-3xl shadow-lg">
+
+            <span class="material-symbols-outlined text-4xl">search_off</span>
+
+        </div>
+
+        <h3 class="font-bold text-xl text-on-surface">No Results Found</h3>
+
+        <p class="text-sm text-on-surface-variant max-w-sm mx-auto">We couldn't find anything for "<span class="font-bold text-on-surface">{{ query }}</span>". Try searching for usernames, creators, or topics like "design", "tech", or "django".</p>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

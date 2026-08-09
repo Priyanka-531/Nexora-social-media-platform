@@ -1,0 +1,597 @@
+{% extends "base.html" %}
+{% load post_tags %}
+
+{% block title %}Home | Nexora{% endblock %}
+
+{% block content %}
+
+<!-- =========================================================
+     SLIDING CATEGORY NAVIGATION
+========================================================= -->
+
+<nav class="w-full bg-surface rounded-full p-2 mb-6 border border-outline-variant/30 ambient-shadow-low overflow-x-auto hide-scrollbar">
+
+    <div class="flex items-center gap-2">
+
+        <a href="{% url 'home' %}?feed=for_you"
+
+           class="px-5 py-2 rounded-full text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 {% if current_feed == 'for_you' %}vivid-gradient text-white shadow-[0px_4px_12px_rgba(139,92,246,0.2)]{% else %}bg-surface-container-low text-on-surface-variant hover:bg-surface-container{% endif %}">
+
+            <span class="material-symbols-outlined text-base">sparkles</span>
+
+            <span>For You</span>
+
+        </a>
+
+
+        <a href="{% url 'home' %}?feed=following"
+
+           class="px-5 py-2 rounded-full text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 {% if current_feed == 'following' %}vivid-gradient text-white shadow-[0px_4px_12px_rgba(139,92,246,0.2)]{% else %}bg-surface-container-low text-on-surface-variant hover:bg-surface-container{% endif %}">
+
+            <span class="material-symbols-outlined text-base">group</span>
+
+            <span>Following</span>
+
+        </a>
+
+
+        <a href="{% url 'home' %}?feed=latest"
+
+           class="px-5 py-2 rounded-full text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 {% if current_feed == 'latest' %}vivid-gradient text-white shadow-[0px_4px_12px_rgba(139,92,246,0.2)]{% else %}bg-surface-container-low text-on-surface-variant hover:bg-surface-container{% endif %}">
+
+            <span class="material-symbols-outlined text-base">schedule</span>
+
+            <span>Latest</span>
+
+        </a>
+
+
+        <a href="{% url 'home' %}?feed=popular"
+
+           class="px-5 py-2 rounded-full text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 {% if current_feed == 'popular' %}vivid-gradient text-white shadow-[0px_4px_12px_rgba(139,92,246,0.2)]{% else %}bg-surface-container-low text-on-surface-variant hover:bg-surface-container{% endif %}">
+
+            <span class="material-symbols-outlined text-base">local_fire_department</span>
+
+            <span>Popular</span>
+
+        </a>
+
+
+        <a href="{% url 'home' %}?feed=trending"
+
+           class="px-5 py-2 rounded-full text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 {% if current_feed == 'trending' %}vivid-gradient text-white shadow-[0px_4px_12px_rgba(139,92,246,0.2)]{% else %}bg-surface-container-low text-on-surface-variant hover:bg-surface-container{% endif %}">
+
+            <span class="material-symbols-outlined text-base">trending_up</span>
+
+            <span>Trending</span>
+
+        </a>
+
+    </div>
+
+</nav>
+
+
+
+<!-- =========================================================
+     MAIN FEED & SIDEBAR GRID
+========================================================= -->
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+
+
+    <!-- ================= FEED COLUMN ================= -->
+
+    <div class="lg:col-span-2 space-y-6">
+
+
+        <!-- ================= STORIES BAR ================= -->
+
+        <div class="bg-surface rounded-3xl p-4 border border-outline-variant/30 ambient-shadow-low flex gap-4 overflow-x-auto hide-scrollbar">
+
+            {% if user.is_authenticated %}
+
+            <!-- YOUR STORY -->
+
+            <div class="flex flex-col items-center gap-1 shrink-0">
+
+                <button type="button"
+                        class="relative focus:outline-none cursor-pointer group"
+                        {% if user.id in active_story_user_ids %}onclick="openStoryViewer('{{ user.username }}')"{% else %}onclick="window.location.href='{% url 'profile' %}'"{% endif %}>
+
+                    <div class="w-16 h-16 rounded-full p-[3px] {% if user.id in active_story_user_ids %}vivid-gradient shadow-sm{% else %}bg-outline-variant/30{% endif %} transition-transform group-hover:scale-105">
+
+                        {% if user.profile.profile_picture %}
+
+                            <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                        {% else %}
+
+                            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=6b38d4&color=fff" alt="{{ user.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                        {% endif %}
+
+                    </div>
+
+                    {% if user.id not in active_story_user_ids %}
+
+                        <span class="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold border-2 border-white">+</span>
+
+                    {% endif %}
+
+                </button>
+
+                <span class="text-xs text-on-surface-variant font-medium">Your Story</span>
+
+            </div>
+
+            {% endif %}
+
+
+            <!-- CREATORS & SUGGESTED STORIES -->
+
+            {% for u in suggested_users %}
+
+            <div class="flex flex-col items-center gap-1 shrink-0">
+
+                <button type="button"
+                        class="focus:outline-none cursor-pointer group"
+                        {% if u.id in active_story_user_ids %}
+                            onclick="openStoryViewer('{{ u.username }}')"
+                        {% else %}
+                            onclick="window.location.href='{% url 'user_profile' u.username %}'"
+                        {% endif %}>
+
+                    <div class="w-16 h-16 rounded-full p-[3px] {% if u.id in active_story_user_ids %}vivid-gradient shadow-sm{% else %}bg-outline-variant/30{% endif %} transition-transform group-hover:scale-105">
+
+                        {% if u.profile.profile_picture %}
+
+                            <img src="{{ u.profile.profile_picture.url }}" alt="{{ u.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                        {% else %}
+
+                            <img src="https://ui-avatars.com/api/?name={{ u.username }}&background=fd56a7&color=fff" alt="{{ u.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                        {% endif %}
+
+                    </div>
+
+                </button>
+
+                <span class="text-xs text-on-surface-variant font-medium truncate max-w-[64px]">@{{ u.username }}</span>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+
+        <!-- ================= POST CARDS LIST ================= -->
+
+        {% for post in posts %}
+
+        <article class="post-card bg-surface rounded-[24px] border border-outline-variant/30 ambient-shadow-low overflow-hidden transition-all duration-300" id="post-{{ post.id }}">
+
+
+            <!-- POST HEADER -->
+
+            <div class="p-4 flex items-center justify-between">
+
+                <div class="flex items-center gap-3">
+
+                    <a href="{% url 'user_profile' post.author.username %}">
+
+                        <div class="w-10 h-10 rounded-full p-[2px] vivid-gradient">
+
+                            {% if post.author.profile.profile_picture %}
+
+                                <img src="{{ post.author.profile.profile_picture.url }}" alt="{{ post.author.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                            {% else %}
+
+                                <img src="https://ui-avatars.com/api/?name={{ post.author.username }}&background=6b38d4&color=fff" alt="{{ post.author.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                            {% endif %}
+
+                        </div>
+
+                    </a>
+
+                    <div>
+
+                        <a href="{% url 'user_profile' post.author.username %}" class="font-bold text-sm text-on-surface hover:text-primary transition-colors">
+
+                            {{ post.author.username }}
+
+                        </a>
+
+                        <p class="text-xs text-on-surface-variant/70">{{ post.created_at|timesince }} ago</p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- POST ACTIONS (DELETE IF OWNER) -->
+
+                {% if post.author == user %}
+
+                <form action="{% url 'delete_post' post.id %}"
+                      method="POST"
+                      class="delete-form"
+                      onsubmit="return confirm('Delete this post?');">
+
+                    {% csrf_token %}
+
+                    <button type="submit" class="w-8 h-8 rounded-full hover:bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:text-danger transition-colors" title="Delete post">
+
+                        <span class="material-symbols-outlined text-lg">delete</span>
+
+                    </button>
+
+                </form>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- POST MEDIA -->
+
+            {% if post.image %}
+
+            <div class="w-full bg-surface-container-low max-h-[500px] overflow-hidden flex items-center justify-center relative select-none">
+
+                <img src="{{ post.image.url }}"
+                     alt="Post by {{ post.author.username }}"
+                     class="post-image w-full h-full object-cover max-h-[500px] cursor-pointer"
+                     data-post-id="{{ post.id }}">
+
+            </div>
+
+            {% endif %}
+
+
+            <!-- POST ACTIONS BAR -->
+
+            <div class="p-4 space-y-3">
+
+                <div class="flex items-center justify-between">
+
+                    <div class="flex items-center gap-4">
+
+                        <!-- LIKE BUTTON -->
+
+                        <button type="button"
+                                class="like-button flex items-center gap-1.5 text-on-surface-variant hover:text-red-500 transition-colors"
+                                data-post-id="{{ post.id }}"
+                                title="Like post">
+
+                            <span class="like-icon material-symbols-outlined text-2xl {% if post.id in liked_post_ids %}text-red-500 fill{% endif %}">
+
+                                favorite
+
+                            </span>
+
+                        </button>
+
+
+                        <!-- COMMENT BUTTON -->
+
+                        <button type="button" class="comment-button flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors" data-post-id="{{ post.id }}">
+
+                            <span class="material-symbols-outlined text-2xl">chat_bubble</span>
+
+                        </button>
+
+
+                        <!-- SHARE BUTTON -->
+
+                        <button type="button" class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+
+                            <span class="material-symbols-outlined text-2xl">share</span>
+
+                        </button>
+
+                    </div>
+
+
+                    <!-- SAVE BUTTON -->
+
+                    <button type="button"
+                            class="save-button text-on-surface-variant hover:text-primary transition-colors"
+                            data-post-id="{{ post.id }}"
+                            title="Save post">
+
+                        <span class="save-icon material-symbols-outlined text-2xl {% if post.id in saved_post_ids %}text-primary fill{% endif %}">
+
+                            bookmark
+
+                        </span>
+
+                    </button>
+
+                </div>
+
+
+                <!-- LIKES COUNT -->
+
+                <div class="font-bold text-sm text-on-surface" id="like-count-{{ post.id }}">
+
+                    {{ post.likes.count }} {% if post.likes.count == 1 %}Like{% else %}Likes{% endif %}
+
+                </div>
+
+
+                <!-- CAPTION -->
+
+                <div class="text-sm leading-relaxed text-on-surface">
+
+                    <a href="{% url 'user_profile' post.author.username %}" class="font-bold text-on-surface hover:text-primary me-2">
+
+                        {{ post.author.username }}
+
+                    </a>
+
+                    <span>{{ post.caption|render_hashtags }}</span>
+
+                </div>
+
+
+                <!-- COMMENTS LIST -->
+
+                <div class="space-y-2 pt-2 border-t border-outline-variant/20" id="comments-{{ post.id }}">
+
+                    {% for comment in post.comments.all %}
+
+                    <div class="flex items-start justify-between gap-2 text-xs" id="comment-{{ comment.id }}">
+
+                        <div>
+
+                            <a href="{% url 'user_profile' comment.user.username %}" class="font-bold text-on-surface hover:text-primary me-1">
+
+                                {{ comment.user.username }}
+
+                            </a>
+
+                            <span class="text-on-surface-variant">{{ comment.text }}</span>
+
+                        </div>
+
+                        {% if comment.user == user %}
+
+                        <button type="button"
+                                class="delete-comment-btn text-on-surface-variant/50 hover:text-danger"
+                                data-comment-id="{{ comment.id }}"
+                                title="Delete comment">
+
+                            <span class="material-symbols-outlined text-sm">close</span>
+
+                        </button>
+
+                        {% endif %}
+
+                    </div>
+
+                    {% empty %}
+
+                    <p class="text-xs text-on-surface-variant/60 italic">No comments yet.</p>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- ADD COMMENT FORM -->
+
+                {% if user.is_authenticated %}
+
+                <form class="ajax-comment-form flex items-center gap-2 pt-2" data-post-id="{{ post.id }}">
+
+                    {% csrf_token %}
+
+                    <input type="text"
+                           name="text"
+                           placeholder="Add a comment..."
+                           maxlength="500"
+                           class="flex-1 bg-surface-container-low border border-outline-variant/40 rounded-full px-4 py-2 text-xs text-on-surface outline-none focus:border-primary transition-colors"
+                           required>
+
+                    <button type="submit" class="px-4 py-1.5 rounded-full vivid-gradient text-white font-semibold text-xs shadow-sm hover:opacity-95 transition-opacity">
+
+                        Post
+
+                    </button>
+
+                </form>
+
+                {% endif %}
+
+            </div>
+
+        </article>
+
+        {% empty %}
+
+        <!-- EMPTY FEED -->
+
+        <div class="bg-surface rounded-3xl p-12 text-center border border-outline-variant/30 ambient-shadow-low space-y-4">
+
+            {% if current_feed == 'following' %}
+
+            <div class="w-16 h-16 rounded-full vivid-gradient mx-auto flex items-center justify-center text-white text-3xl shadow-lg">
+
+                <span class="material-symbols-outlined text-4xl">group_add</span>
+
+            </div>
+
+            <h3 class="font-bold text-xl text-on-surface">No Following Activity</h3>
+
+            <p class="text-sm text-on-surface-variant max-w-sm mx-auto">
+                {% if user.is_authenticated %}
+                    You haven't followed any creators yet or accounts you follow haven't posted. Check out suggested creators on the right!
+                {% else %}
+                    Log in to follow creators and see posts from your favorite people.
+                {% endif %}
+            </p>
+
+            <a href="{% url 'home' %}?feed=for_you" class="inline-block px-6 py-2.5 rounded-full vivid-gradient text-white font-semibold text-sm shadow-[0px_4px_12px_rgba(139,92,246,0.2)]">
+
+                Explore For You Feed
+
+            </a>
+
+            {% else %}
+
+            <div class="w-16 h-16 rounded-full vivid-gradient mx-auto flex items-center justify-center text-white text-3xl shadow-lg">
+
+                <span class="material-symbols-outlined text-4xl">photo_library</span>
+
+            </div>
+
+            <h3 class="font-bold text-xl text-on-surface">No Posts Found</h3>
+
+            <p class="text-sm text-on-surface-variant max-w-sm mx-auto">Be the first to share your memories with the Nexora community.</p>
+
+            {% if user.is_authenticated %}
+
+            <a href="{% url 'create_post' %}" class="inline-block px-6 py-2.5 rounded-full vivid-gradient text-white font-semibold text-sm shadow-[0px_4px_12px_rgba(139,92,246,0.2)]">
+
+                Create First Post
+
+            </a>
+
+            {% endif %}
+
+            {% endif %}
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+
+    <!-- ================= SIDEBAR COLUMN ================= -->
+
+    <div class="hidden lg:block space-y-6 sticky top-24">
+
+
+        <!-- USER PROFILE CARD -->
+
+        {% if user.is_authenticated %}
+
+        <div class="bg-surface rounded-3xl p-5 border border-outline-variant/30 ambient-shadow-low flex items-center gap-4">
+
+            <a href="{% url 'profile' %}" class="relative">
+
+                <div class="w-14 h-14 rounded-full p-[2px] vivid-gradient">
+
+                    {% if user.profile.profile_picture %}
+
+                        <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                    {% else %}
+
+                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=6b38d4&color=fff" alt="{{ user.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                    {% endif %}
+
+                </div>
+
+            </a>
+
+            <div class="flex-1 min-w-0">
+
+                <h5 class="font-bold text-base text-on-surface truncate">{{ user.username }}</h5>
+
+                <p class="text-xs text-on-surface-variant truncate">{{ user.first_name }} {{ user.last_name }}</p>
+
+            </div>
+
+            <a href="{% url 'profile' %}" class="px-4 py-1.5 rounded-full border border-primary text-primary text-xs font-semibold hover:bg-primary/5 transition-colors">
+
+                Profile
+
+            </a>
+
+        </div>
+
+        {% endif %}
+
+
+        <!-- SUGGESTED CREATORS -->
+
+        <div class="bg-surface rounded-3xl p-5 border border-outline-variant/30 ambient-shadow-low space-y-4">
+
+            <div class="flex items-center justify-between">
+
+                <h5 class="font-bold text-base text-on-surface">Suggested for you</h5>
+
+                <span class="text-xs font-semibold text-primary cursor-pointer">See All</span>
+
+            </div>
+
+            <hr class="border-outline-variant/30">
+
+            <div class="space-y-4">
+
+                {% for u in suggested_users %}
+
+                <div class="flex items-center justify-between gap-3">
+
+                    <a href="{% url 'user_profile' u.username %}" class="flex items-center gap-3 min-w-0">
+
+                        <div class="w-10 h-10 rounded-full p-[2px] vivid-gradient shrink-0">
+
+                            {% if u.profile.profile_picture %}
+
+                                <img src="{{ u.profile.profile_picture.url }}" alt="{{ u.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                            {% else %}
+
+                                <img src="https://ui-avatars.com/api/?name={{ u.username }}&background=fd56a7&color=fff" alt="{{ u.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                            {% endif %}
+
+                        </div>
+
+                        <div class="min-w-0">
+
+                            <p class="font-bold text-xs text-on-surface truncate">@{{ u.username }}</p>
+
+                            <p class="text-[11px] text-on-surface-variant/70 truncate">{% if u.get_full_name %}{{ u.get_full_name }}{% elif u.profile.profession %}{{ u.profile.profession }}{% else %}Suggested for you{% endif %}</p>
+
+                        </div>
+
+                    </a>
+
+                    <button type="button"
+                            class="follow-btn px-4 py-1.5 rounded-full vivid-gradient text-white text-xs font-semibold shadow-sm hover:opacity-95 transition-opacity"
+                            data-username="{{ u.username }}"
+                            data-status="none"
+                            data-is-following="false"
+                            data-is-requested="false">
+
+                        Follow
+
+                    </button>
+
+                </div>
+
+                {% empty %}
+
+                <p class="text-xs text-on-surface-variant text-center py-2">No suggestions available.</p>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

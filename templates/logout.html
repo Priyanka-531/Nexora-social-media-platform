@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}Logout | Nexora{% endblock %}
+
+{% block content %}
+
+<div class="min-h-[75vh] flex items-center justify-center px-4 py-12">
+
+    <div class="w-full max-w-lg bg-surface rounded-3xl border border-outline-variant/30 ambient-shadow-high overflow-hidden transition-all duration-300">
+
+        {% if confirm_logout and user.is_authenticated %}
+
+        <!-- =========================================================
+             CONFIRM LOGOUT CARD (AUTHENTICATED USER)
+        ========================================================= -->
+
+        <div class="vivid-gradient px-6 py-10 text-center text-white relative overflow-hidden">
+
+            <div class="absolute inset-0 opacity-20" style="background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.3), transparent 50%), radial-gradient(circle at 80% 70%, rgba(255,255,255,0.2), transparent 40%);"></div>
+
+            <div class="relative z-10 space-y-3">
+
+                <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md mx-auto flex items-center justify-center text-white mb-2 shadow-inner">
+
+                    <span class="material-symbols-outlined text-3xl">logout</span>
+
+                </div>
+
+                <h2 class="font-extrabold text-2xl md:text-3xl tracking-tight">Confirm Logout</h2>
+
+                <p class="text-white/85 text-sm max-w-xs mx-auto">Are you sure you want to end your session on Nexora?</p>
+
+            </div>
+
+        </div>
+
+
+        <div class="p-6 md:p-8 space-y-6">
+
+            <!-- USER CARD PREVIEW -->
+
+            <div class="flex items-center gap-4 p-4 bg-surface-container-low border border-outline-variant/30 rounded-2xl">
+
+                <div class="w-12 h-12 rounded-full p-[2px] vivid-gradient shrink-0">
+
+                    {% if user.profile.profile_picture %}
+
+                        <img src="{{ user.profile.profile_picture.url }}"
+                             alt="{{ user.username }}"
+                             class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                    {% else %}
+
+                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=6b38d4&color=fff&bold=true"
+                             alt="{{ user.username }}"
+                             class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                    {% endif %}
+
+                </div>
+
+                <div class="flex-1 min-w-0">
+
+                    <h3 class="font-bold text-on-surface truncate text-base">
+                        {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}
+                    </h3>
+
+                    <p class="text-xs text-on-surface-variant truncate">@{{ user.username }} • Active Session</p>
+
+                </div>
+
+            </div>
+
+
+            <!-- ACTION BUTTONS -->
+
+            <form method="POST" action="{% url 'logout' %}" class="space-y-3">
+
+                {% csrf_token %}
+
+                <button type="submit" class="w-full py-3.5 px-6 rounded-full bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-bold text-sm shadow-[0px_4px_14px_rgba(239,68,68,0.3)] hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+
+                    <span class="material-symbols-outlined text-lg">power_settings_new</span>
+
+                    <span>Yes, Log Out</span>
+
+                </button>
+
+            </form>
+
+
+            <a href="{% url 'home' %}" class="w-full py-3.5 px-6 rounded-full bg-surface-container-low hover:bg-surface-container border border-outline-variant/40 text-on-surface font-semibold text-sm transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
+
+                <span class="material-symbols-outlined text-lg">arrow_back</span>
+
+                <span>Cancel & Stay Logged In</span>
+
+            </a>
+
+        </div>
+
+        {% else %}
+
+        <!-- =========================================================
+             LOGGED OUT SUCCESS CARD
+        ========================================================= -->
+
+        <div class="vivid-gradient px-6 py-10 text-center text-white relative overflow-hidden">
+
+            <div class="absolute inset-0 opacity-20" style="background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.3), transparent 50%), radial-gradient(circle at 80% 70%, rgba(255,255,255,0.2), transparent 40%);"></div>
+
+            <div class="relative z-10 space-y-3">
+
+                <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md mx-auto flex items-center justify-center text-white mb-2 shadow-inner">
+
+                    <span class="material-symbols-outlined text-3xl">check_circle</span>
+
+                </div>
+
+                <h2 class="font-extrabold text-2xl md:text-3xl tracking-tight">You've Been Logged Out</h2>
+
+                <p class="text-white/85 text-sm max-w-xs mx-auto">Thank you for spending time on Nexora. See you again soon!</p>
+
+            </div>
+
+        </div>
+
+
+        <div class="p-6 md:p-8 space-y-6 text-center">
+
+            {% if messages %}
+
+                {% for message in messages %}
+
+                    <div class="bg-primary/10 border border-primary/20 rounded-2xl px-4 py-3 text-xs text-primary font-medium flex items-center justify-center gap-2">
+
+                        <span class="material-symbols-outlined text-base">info</span>
+
+                        <span>{{ message }}</span>
+
+                    </div>
+
+                {% endfor %}
+
+            {% endif %}
+
+            <div class="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/30 text-xs text-on-surface-variant leading-relaxed">
+
+                Your session has safely ended. You can sign back in anytime to catch up with posts, interact with friends, and share updates.
+
+            </div>
+
+            <div class="space-y-3 pt-2">
+
+                <a href="{% url 'login' %}" class="w-full py-3.5 px-6 rounded-full vivid-gradient text-white font-bold text-sm shadow-[0px_4px_14px_rgba(139,92,246,0.3)] hover:opacity-95 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+
+                    <span class="material-symbols-outlined text-lg">login</span>
+
+                    <span>Log In Again</span>
+
+                </a>
+
+                <a href="{% url 'register' %}" class="w-full py-3.5 px-6 rounded-full bg-surface-container-low hover:bg-surface-container border border-outline-variant/40 text-on-surface font-semibold text-sm transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
+
+                    <span class="material-symbols-outlined text-lg">person_add</span>
+
+                    <span>Create New Account</span>
+
+                </a>
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

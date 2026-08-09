@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Register | Nexora{% endblock %}
+
+{% block content %}
+
+<div class="min-h-[70vh] flex items-center justify-center px-4">
+
+    <div class="w-full max-w-md bg-surface rounded-3xl border border-outline-variant/30 ambient-shadow-low overflow-hidden">
+
+        <!-- GRADIENT HEADER -->
+
+        <div class="vivid-gradient px-6 py-8 text-center text-white relative overflow-hidden">
+
+            <div class="absolute inset-0 opacity-20" style="background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.3), transparent 50%), radial-gradient(circle at 70% 80%, rgba(255,255,255,0.2), transparent 40%);"></div>
+
+            <div class="relative z-10 space-y-2">
+
+                <div class="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm mx-auto flex items-center justify-center text-3xl mb-3">
+
+                    <span class="material-symbols-outlined text-3xl">rocket_launch</span>
+
+                </div>
+
+                <h2 class="font-extrabold text-2xl">Join Nexora</h2>
+
+                <p class="text-white/80 text-sm">Create your account and start sharing</p>
+
+            </div>
+
+        </div>
+
+
+        <!-- FORM BODY -->
+
+        <div class="p-6 md:p-8 space-y-5">
+
+            {% if form.errors %}
+
+                <div class="bg-danger/10 border border-danger/20 rounded-2xl p-4 text-xs text-danger space-y-1">
+
+                    <strong>Please fix the following errors:</strong>
+
+                    <ul class="list-disc ps-4 space-y-0.5">
+
+                        {% for field in form %}
+
+                            {% for error in field.errors %}
+
+                                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+
+                            {% endfor %}
+
+                        {% endfor %}
+
+                        {% for error in form.non_field_errors %}
+
+                            <li>{{ error }}</li>
+
+                        {% endfor %}
+
+                    </ul>
+
+                </div>
+
+            {% endif %}
+
+            <form method="POST" class="space-y-4">
+
+                {% csrf_token %}
+
+                {% for field in form %}
+
+                <div class="space-y-1.5">
+
+                    <label class="block font-semibold text-xs text-on-surface uppercase tracking-wider">
+
+                        {{ field.label }}
+
+                    </label>
+
+                    <input type="{{ field.field.widget.input_type|default:'text' }}"
+                           name="{{ field.html_name }}"
+                           value="{{ field.value|default:'' }}"
+                           class="w-full bg-surface-container-low border border-outline-variant/40 rounded-full px-5 py-3 text-sm text-on-surface outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(107,56,212,0.1)] transition-all"
+                           placeholder="{{ field.label }}"
+                           {% if field.field.required %}required{% endif %}>
+
+                    {% if field.help_text %}
+
+                        <p class="text-[11px] text-on-surface-variant/60 px-2">{{ field.help_text|safe }}</p>
+
+                    {% endif %}
+
+                </div>
+
+                {% endfor %}
+
+                <button type="submit" class="w-full py-3 rounded-full vivid-gradient text-white font-bold text-sm shadow-[0px_4px_12px_rgba(139,92,246,0.25)] hover:opacity-95 transition-transform active:scale-[0.98]">
+
+                    Create Account
+
+                </button>
+
+            </form>
+
+            <div class="flex items-center gap-3">
+
+                <hr class="flex-1 border-outline-variant/30">
+
+                <span class="text-xs text-on-surface-variant">OR</span>
+
+                <hr class="flex-1 border-outline-variant/30">
+
+            </div>
+
+            <p class="text-center text-sm text-on-surface-variant">
+
+                Already have an account?
+
+                <a href="{% url 'login' %}" class="font-bold text-primary hover:underline">Login</a>
+
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

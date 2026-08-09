@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Follow Requests | Nexora{% endblock %}
+
+{% block content %}
+
+<div class="max-w-2xl mx-auto space-y-6">
+
+    <!-- =========================================================
+         HEADER CARD
+    ========================================================= -->
+
+    <div class="bg-surface rounded-3xl p-6 md:p-8 border border-outline-variant/30 ambient-shadow-low">
+
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-outline-variant/20">
+
+            <div class="flex items-center gap-3">
+
+                <div class="w-11 h-11 rounded-full vivid-gradient flex items-center justify-center text-white font-bold shadow-[0px_4px_12px_rgba(139,92,246,0.2)]">
+
+                    <span class="material-symbols-outlined text-2xl">group_add</span>
+
+                </div>
+
+                <div>
+
+                    <h1 class="font-extrabold text-2xl text-on-surface tracking-tight">Follow Requests</h1>
+
+                    <p class="text-xs text-on-surface-variant/70">People who want to follow your updates</p>
+
+                </div>
+
+            </div>
+
+            <span class="bg-primary/10 text-primary text-xs font-extrabold px-3.5 py-1.5 rounded-full" id="pending-count-badge">
+
+                {{ follow_requests.count }} Pending
+
+            </span>
+
+        </div>
+
+
+        <!-- ================= REQUESTS LIST ================= -->
+
+        <div class="space-y-3" id="requests-list-container">
+
+            {% for req in follow_requests %}
+
+            <div class="follow-request-card flex items-center justify-between p-4 bg-surface-container-low/60 hover:bg-surface-container-low rounded-2xl border border-outline-variant/20 transition-all duration-300" id="request-card-{{ req.id }}">
+
+                <a href="{% url 'user_profile' req.sender.username %}" class="flex items-center gap-3.5 min-w-0 flex-1 me-3">
+
+                    <div class="w-12 h-12 rounded-full p-[2px] vivid-gradient shrink-0">
+
+                        {% if req.sender.profile.profile_picture %}
+
+                            <img src="{{ req.sender.profile.profile_picture.url }}" alt="{{ req.sender.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                        {% else %}
+
+                            <img src="https://ui-avatars.com/api/?name={{ req.sender.username }}&background=6b38d4&color=fff" alt="{{ req.sender.username }}" class="w-full h-full object-cover rounded-full border-2 border-white">
+
+                        {% endif %}
+
+                    </div>
+
+                    <div class="min-w-0">
+
+                        <p class="font-bold text-sm text-on-surface hover:text-primary transition-colors truncate">@{{ req.sender.username }}</p>
+
+                        <p class="text-xs text-on-surface-variant/70 truncate">
+
+                            {% if req.sender.get_full_name %}
+
+                                {{ req.sender.get_full_name }}
+
+                            {% elif req.sender.profile.profession %}
+
+                                {{ req.sender.profile.profession }}
+
+                            {% else %}
+
+                                Requested to follow you
+
+                            {% endif %}
+
+                        </p>
+
+                        <p class="text-[10px] text-on-surface-variant/50 mt-0.5">{{ req.created_at|timesince }} ago</p>
+
+                    </div>
+
+                </a>
+
+
+                <div class="flex items-center gap-2 shrink-0">
+
+                    <button type="button"
+
+                            class="accept-request-btn px-4 py-2 rounded-full vivid-gradient text-white text-xs font-semibold shadow-sm hover:opacity-95 transition-all active:scale-95"
+
+                            data-request-id="{{ req.id }}">
+
+                        Accept
+
+                    </button>
+
+
+                    <button type="button"
+
+                            class="reject-request-btn px-4 py-2 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant text-xs font-semibold border border-outline-variant/40 transition-all active:scale-95"
+
+                            data-request-id="{{ req.id }}">
+
+                        Reject
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <div class="text-center py-12 space-y-3" id="empty-requests-msg">
+
+                <div class="w-16 h-16 rounded-full bg-surface-container-low mx-auto flex items-center justify-center text-on-surface-variant/40">
+
+                    <span class="material-symbols-outlined text-3xl">person_add_disabled</span>
+
+                </div>
+
+                <h3 class="font-bold text-lg text-on-surface">No Follow Requests</h3>
+
+                <p class="text-xs text-on-surface-variant max-w-xs mx-auto">When people request to follow you, their requests will appear here.</p>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
