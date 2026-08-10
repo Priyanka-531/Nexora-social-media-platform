@@ -176,3 +176,32 @@ Nexora/
 ├── requirements.txt
 ├── README.md
 └── .gitignore
+## 📸 Screenshots
+
+### 🏠 Home Feed
+
+![Nexora Home Feed](screenshots/home-feed.png)
+
+### 👤 User Profile
+
+![Nexora Profile](screenshots/profile.png)
+
+### 📝 Create Post
+
+![Nexora Create Post](screenshots/create-post.png)
+
+### ❤️ Post Interaction
+
+![Nexora Post Interaction](screenshots/post-like-comment.png)
+
+### 🔎 Search
+
+![Nexora Search](screenshots/search.png)
+
+### 👥 Follow System
+
+![Nexora Follow System](screenshots/follow-system.png)
+
+### 📱 Responsive Design
+
+![Nexora Mobile](screenshots/mobile.png)
